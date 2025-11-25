@@ -22,6 +22,10 @@ import app.views
 urlpatterns = [
     path('admin/', admin.site.urls),
 
+    # Service Status
+    # - `HEALTHCHECK` support for Docker Container
+    path('health/', app.views.health),
+
     # Swagger Support
     path('swagger/', app.views.schema.with_ui('swagger')),
     path('swagger/(?P<format>\\.json|\\.yaml)', app.views.schema.without_ui()),

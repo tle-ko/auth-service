@@ -1,5 +1,8 @@
+from django.http import HttpRequest
+from django.http import HttpResponse
 from drf_yasg.openapi import Contact
 from drf_yasg.openapi import Info
+from drf_yasg.utils import swagger_auto_schema
 from drf_yasg.views import get_schema_view
 from rest_framework.permissions import AllowAny
 
@@ -14,3 +17,8 @@ schema = get_schema_view(
     public=True,
     permission_classes=[AllowAny],
 )
+
+
+@swagger_auto_schema(method='get')
+def health(request: HttpRequest):
+    return HttpResponse(status=200)
