@@ -1,11 +1,11 @@
 from django.http import HttpRequest
 from django.http import HttpResponse
-from django.views.decorators.http import require_http_methods
 from drf_yasg.openapi import Contact
 from drf_yasg.openapi import Info
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg.views import get_schema_view
 from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
 
 
 schema = get_schema_view(
@@ -20,7 +20,15 @@ schema = get_schema_view(
 )
 
 
-@require_http_methods(["GET"])
-@swagger_auto_schema(method='get')
-def health(request: HttpRequest):
-    return HttpResponse(status=200)
+class HealthCheck(APIView):
+    """
+    Health Check API
+
+    배포된 컨테이너의 상태 검사를 위한 endpoint.
+    컨테이너가 정상적으로 구동되었으면 200 OK를 반환한다.
+    """
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema()
+    def get(self, request: HttpRequest):
+        return HttpResponse(status=200)

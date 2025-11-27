@@ -26,7 +26,7 @@ urlpatterns = [
 
     # Service Status
     # - `HEALTHCHECK` support for Docker Container
-    path('health/', app.views.health),
+    path('health/', app.views.HealthCheck.as_view()),
 
     # Swagger Support
     path('swagger/', app.views.schema.with_ui('swagger')),
