@@ -27,7 +27,7 @@ RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
 # Schedule health check
-HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 CMD ["curl", "--silent", "http://localhost:8000/health/"]
+HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 CMD ["curl", "--silent", "--fail", "http://localhost:8000/health/"]
 
 # Run server
 ENTRYPOINT ["/app/entrypoint.sh"]
