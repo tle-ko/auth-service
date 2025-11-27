@@ -20,9 +20,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /app/
 
-# Ensure shell scripts are executable
-RUN chmod +x /app/healthcheck.sh /app/entrypoint.sh
-
-# Run the server
+# Schedule health check
+RUN chmod +x /app/healthcheck.sh
 HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=3 CMD [ "/app/healthcheck.sh" ]
-ENTRYPOINT ["./entrypoint.sh"]
+
+# Run server (multi-threaded)
+RUN /app/manage.py migrate --no-input
+ENTRYPOINT ["gunicorn", "app.wsgi:application", "--bind", "0.0.0.0:8000"]
