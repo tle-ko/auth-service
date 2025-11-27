@@ -4,6 +4,7 @@ from drf_yasg.openapi import Contact
 from drf_yasg.openapi import Info
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg.views import get_schema_view
+from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
@@ -20,7 +21,7 @@ schema = get_schema_view(
 )
 
 
-class HealthCheck(APIView):
+class HealthCheckAPIView(APIView):
     """
     Health Check API
 
@@ -31,4 +32,4 @@ class HealthCheck(APIView):
 
     @swagger_auto_schema()
     def get(self, request: HttpRequest):
-        return HttpResponse(status=200)
+        return HttpResponse(status=status.HTTP_200_OK)
