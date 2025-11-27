@@ -22,8 +22,7 @@ COPY . /app/
 
 # Schedule health check
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-RUN chmod +x /app/healthcheck.sh
-HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=3 CMD [ "/app/healthcheck.sh" ]
+HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 CMD ["curl", "--silent", "http://localhost:8000/health/"]
 
 # Run server (multi-threaded)
 RUN /app/manage.py migrate --no-input
