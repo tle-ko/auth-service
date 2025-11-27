@@ -19,19 +19,16 @@ COPY requirements.txt /app/
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY . /app/
+RUN chmod +x /app/entrypoint.sh
+
 # Create non-root user
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
-COPY . /app/
-
 # Schedule health check
 HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 CMD ["curl", "--silent", "http://localhost:8000/health/"]
 
-# TODO: Remove this line when local SQLite DB is not used anymore.
-# 로컬 Sqlite3를 사용하지 않게되면 이 명령을 제거할 것.
-RUN /app/manage.py migrate --no-input
-
 # Run server
-ENTRYPOINT ["gunicorn", "app.wsgi:application"]
+ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["--bind", "0.0.0.0:8000", "--workers", "4", "--threads", "2"]
