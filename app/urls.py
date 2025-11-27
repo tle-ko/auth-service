@@ -22,16 +22,20 @@ import app.views
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-
     # Service Status
     # - `HEALTHCHECK` support for Docker Container
     path('health/', app.views.HealthCheckAPIView.as_view()),
-
-    # Swagger Support
-    path('swagger/', app.views.schema.with_ui('swagger')),
-    path('swagger/(?P<format>\\.json|\\.yaml)', app.views.schema.without_ui()),
-
-    # Static Files Serving
-    *static(settings.STATIC_URL, document_root=settings.STATIC_ROOT),
 ]
+
+if settings.DEBUG:
+    urlpatterns += [
+        path('admin/', admin.site.urls),
+
+        # Swagger Support
+        path(r'swagger/', app.views.schema.with_ui('swagger')),
+        path(r'swagger/(?P<format>\.json|\.yaml)',
+             app.views.schema.without_ui()),
+
+        # Serve static files only in development
+        *static(settings.STATIC_URL, document_root=settings.STATIC_ROOT),
+    ]
