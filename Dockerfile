@@ -16,12 +16,16 @@ RUN pip install --upgrade pip
 COPY requirements.txt /app/
 
 # Run this command to install all dependencies
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
 
 COPY . /app/
 
 # Schedule health check
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 CMD ["curl", "--silent", "http://localhost:8000/health/"]
 
 # Run server
