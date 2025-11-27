@@ -24,6 +24,7 @@ COPY . /app/
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 CMD ["curl", "--silent", "http://localhost:8000/health/"]
 
-# Run server (multi-threaded)
+# Run server
 RUN /app/manage.py migrate --no-input
-ENTRYPOINT ["gunicorn", "app.wsgi:application", "--bind", "0.0.0.0:8000"]
+ENTRYPOINT ["gunicorn", "app.wsgi:application"]
+CMD ["--bind", "0.0.0.0:8000", "--workers", "4", "--threads", "2"]
