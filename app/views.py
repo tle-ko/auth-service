@@ -1,5 +1,6 @@
 from django.http import HttpRequest
 from django.http import HttpResponse
+from django.views.decorators.http import require_http_methods
 from drf_yasg.openapi import Contact
 from drf_yasg.openapi import Info
 from drf_yasg.utils import swagger_auto_schema
@@ -19,6 +20,7 @@ schema = get_schema_view(
 )
 
 
+@require_http_methods(["GET"])
 @swagger_auto_schema(method='get')
 def health(request: HttpRequest):
     return HttpResponse(status=200)
