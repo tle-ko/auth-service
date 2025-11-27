@@ -28,7 +28,10 @@ COPY . /app/
 # Schedule health check
 HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 CMD ["curl", "--silent", "http://localhost:8000/health/"]
 
-# Run server
+# TODO: Remove this line when local SQLite DB is not used anymore.
+# 로컬 Sqlite3를 사용하지 않게되면 이 명령을 제거할 것.
 RUN /app/manage.py migrate --no-input
+
+# Run server
 ENTRYPOINT ["gunicorn", "app.wsgi:application"]
 CMD ["--bind", "0.0.0.0:8000", "--workers", "4", "--threads", "2"]
