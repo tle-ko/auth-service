@@ -217,5 +217,3 @@ __marimo__/
 
 # Dot files
 .*
-!.dockerignore
-!.gitignore
