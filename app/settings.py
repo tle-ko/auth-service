@@ -38,6 +38,11 @@ DEBUG = os.getenv('DEBUG', False)
 
 ALLOWED_HOSTS = list(filter(None, os.getenv('ALLOWED_HOSTS', '').split(',')))
 
+assert DEBUG or ALLOWED_HOSTS, (
+    'ALLOWED_HOSTS is not set. '
+    'Please set ALLOWED_HOSTS environment variable.'
+)
+
 
 # Application definition
 
