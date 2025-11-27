@@ -2,3 +2,4 @@ django
 djangorestframework
 drf-yasg
 gunicorn
+python-dotenv
