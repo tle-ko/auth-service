@@ -30,6 +30,10 @@ class HealthCheckAPIView(APIView):
     """
     permission_classes = [AllowAny]
 
-    @swagger_auto_schema()
+    @swagger_auto_schema(
+        responses={
+            status.HTTP_200_OK: "Container is healthy.",
+        }
+    )
     def get(self, request: HttpRequest):
         return HttpResponse(status=status.HTTP_200_OK)
