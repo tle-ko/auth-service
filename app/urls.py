@@ -35,7 +35,7 @@ if settings.DEBUG:
         # Swagger Support
         path('swagger/', app.views.schema.with_ui('swagger')),
         re_path(r'swagger/(?P<format>\.json|\.yaml)',
-             app.views.schema.without_ui()),
+                app.views.schema.without_ui()),
 
         # Serve static files only in development
         *static(settings.STATIC_URL, document_root=settings.STATIC_ROOT),
