@@ -51,9 +51,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
 
+if SECRET_KEY is None and (secret_key_file := os.getenv('SECRET_KEY_FILE')) is not None:
+    with open(secret_key_file, 'rt') as f:
+        SECRET_KEY = f.read().strip()
+
 assert SECRET_KEY is not None, (
     'SECRET_KEY is not set. '
-    'Please set SECRET_KEY environment variable.'
+    'Please set SECRET_KEY or SECRET_KEY_FILE environment variable.'
 )
 
 

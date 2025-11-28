@@ -8,9 +8,11 @@ services:
     ports:
       - "80:8000"
     environment:
-      SECRET_KEY: 'django-insecure-dulqz#%k5aq8%cdx02%55tm9+2q1b%qogh%2#6jbx3zn4ab5pb'
+      SECRET_KEY_FILE: /run/secrets/secret_key
       DEBUG: 1
-      ALLOWED_HOSTS: '*'
+      ALLOWED_HOSTS: "*"
+    secrets:
+      - secret_key
     develop:
       watch:
         - action: rebuild
@@ -23,3 +25,7 @@ services:
           path: "."
           target: "/app/"
           initial_sync: true
+
+secrets:
+  secret_key:
+    file: ./.secrets/secret_key.txt
