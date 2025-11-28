@@ -64,7 +64,7 @@ docker compose -f docker-compose.develop.yml up -d
 docker compose -f docker-compose.develop.yml logs -f
 ```
 
-> 💡 **개발 모드**: 개발 환경 실행 명령 옵션으로 `-w`를 추가하여 file watcher 기능을 활성화 할 수 있습니다.
+> 💡 **개발 모드**: 개발 환경 실행 명령 옵션으로 `-w`를 추가하여 watch mode 기능을 활성화 할 수 있습니다.
 
 ### 4. 접속 확인
 
