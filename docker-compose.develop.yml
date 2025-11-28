@@ -13,7 +13,7 @@ services:
       - "80:8000"
     environment:
       SECRET_KEY_FILE: /run/secrets/secret_key
-      DEBUG: true
+      DEBUG: "true"
       ALLOWED_HOSTS: "localhost,127.0.0.1"
       POSTGRES_HOST: auth-database
       POSTGRES_PORT: 5432
