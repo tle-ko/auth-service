@@ -34,10 +34,11 @@ DEBUG = env.get_bool('DEBUG', default=False)
 ALLOWED_HOSTS = env.get_array('ALLOWED_HOSTS', default=[])
 
 
-assert ALLOWED_HOSTS, (
-    'ALLOWED_HOSTS is not set or empty. '
-    'Please set ALLOWED_HOSTS as a comma-separated list (e.g., "example.com,www.example.com").'
-)
+if not ALLOWED_HOSTS:
+    raise ValueError(
+        'ALLOWED_HOSTS is not set or empty. '
+        'Please set ALLOWED_HOSTS as a comma-separated list (e.g., "example.com,www.example.com").'
+    )
 
 
 # Application definition
@@ -91,10 +92,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'HOST': env.get("POSTGRES_HOST", required=True),
-        'PORT': env.get_int("POSTGRES_PORT", default=5432, required=True),
+        'PORT': env.get_int("POSTGRES_PORT", default=5432),
         'NAME': env.get("POSTGRES_DB", required=True),
         'USER': env.get("POSTGRES_USER", required=True),
-        'PASSWORD': env.get('POSTGRES_PASSWORD', env.get_file_content('POSTGRES_PASSWORD_FILE'), required=True),
+        'PASSWORD': env.get('POSTGRES_PASSWORD', default=env.get_file_content('POSTGRES_PASSWORD_FILE'), required=True),
     }
 }
 
