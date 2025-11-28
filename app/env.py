@@ -3,6 +3,7 @@
 """
 
 import os
+from dotenv import load_dotenv
 from pathlib import Path
 from typing import Iterable
 from typing import List
@@ -11,6 +12,9 @@ from typing import Optional
 
 TRUTHY_VALUES = ('true', '1', 't', 'y', 'yes', 'on')
 FALSY_VALUES = ('false', '0', 'f', 'n', 'no', 'off')
+
+
+load_dotenv()
 
 
 def get(key: str, default: Optional[str] = None, required: bool = False) -> Optional[str]:
