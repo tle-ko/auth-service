@@ -6,7 +6,9 @@ services:
       context: .
       dockerfile: Dockerfile
     depends_on:
-      - auth-database
+      auth-database:
+        condition: service_healthy
+        restart: true
     ports:
       - "80:8000"
     environment:
@@ -37,6 +39,11 @@ services:
   auth-database:
     image: postgres:15-alpine
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tle-auth"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - ./.volume:/var/lib/postgresql/data
     environment:
