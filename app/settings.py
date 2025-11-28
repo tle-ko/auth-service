@@ -10,10 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-from dotenv import load_dotenv
-from pathlib import Path
-from typing import Union
 import os
+from pathlib import Path
+from typing import Any, Callable, Optional, Union
 
 
 def is_truthy(value: Union[str, int, bool, None]) -> bool:
@@ -38,7 +37,47 @@ def is_truthy(value: Union[str, int, bool, None]) -> bool:
     )
 
 
-load_dotenv()
+def get_env(key: str,
+            default: Optional[Any] = None,
+            file_key: Optional[str] = None,
+            mapper_fn: Optional[Callable[[Any], Any]] = None,
+            raise_on_none: bool = False,
+            raise_message: str = '') -> Any:
+    """
+    Get environment variable value.
+
+    1. Try to read the value from the environment variable specified by `key`.
+    2. If not set, try to read the value from the file specified by `file_key`.
+    3. If still not set, use the `default` value.
+    4. If still not set, raise an error if `raise_on_none` is `True`.
+    """
+    def inner():
+        # 1. try read from key
+        value = os.getenv(key)
+        if value is not None:
+            return value
+
+        # 2. if not set, try read from file
+        if file_key is not None:
+            file_path = os.getenv(file_key)
+            if file_path is not None:
+                with open(file_path, 'rt') as f:
+                    return f.read().strip()
+
+        # 3. if still not set, try use default
+        if default is not None:
+            return default
+
+        # 4. ... raise error
+        if raise_on_none:
+            raise ValueError(raise_message)
+
+        return None
+
+    if mapper_fn is None:
+        return inner()
+
+    return mapper_fn(inner())
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -49,22 +88,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
-
-if SECRET_KEY is None and (secret_key_file := os.getenv('SECRET_KEY_FILE')) is not None:
-    with open(secret_key_file, 'rt') as f:
-        SECRET_KEY = f.read().strip()
-
-assert SECRET_KEY is not None, (
-    'SECRET_KEY is not set. '
-    'Please set SECRET_KEY or SECRET_KEY_FILE environment variable.'
+SECRET_KEY = get_env(
+    key='SECRET_KEY',
+    file_key='SECRET_KEY_FILE',
+    raise_on_none=True,
+    raise_message=(
+        'SECRET_KEY is not set. '
+        'Please set SECRET_KEY or SECRET_KEY_FILE environment variable.'
+    ),
 )
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = is_truthy(os.getenv('DEBUG', 'false'))
+DEBUG = get_env(
+    key='DEBUG',
+    default=False,
+    mapper_fn=is_truthy,
+    raise_on_none=False,
+)
 
-ALLOWED_HOSTS = list(filter(None, os.getenv('ALLOWED_HOSTS', '').split(',')))
+ALLOWED_HOSTS = list(filter(None, get_env('ALLOWED_HOSTS', '').split(',')))
 
 assert DEBUG or ALLOWED_HOSTS, (
     'ALLOWED_HOSTS is not set or empty. '
