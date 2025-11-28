@@ -54,8 +54,8 @@ DEBUG = is_truthy(os.getenv('DEBUG', 'false'))
 ALLOWED_HOSTS = list(filter(None, os.getenv('ALLOWED_HOSTS', '').split(',')))
 
 assert DEBUG or ALLOWED_HOSTS, (
-    'ALLOWED_HOSTS is not set. '
-    'Please set ALLOWED_HOSTS environment variable.'
+    'ALLOWED_HOSTS is not set or empty. '
+    'Please set ALLOWED_HOSTS as a comma-separated list (e.g., "example.com,www.example.com").'
 )
 
 
