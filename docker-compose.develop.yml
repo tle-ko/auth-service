@@ -5,14 +5,22 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    depends_on:
+      - auth-database
     ports:
       - "80:8000"
     environment:
       SECRET_KEY_FILE: /run/secrets/secret_key
       DEBUG: 1
       ALLOWED_HOSTS: "*"
+      POSTGRES_HOST: auth-database
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: auth-database
+      POSTGRES_USER: tle-auth
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
     secrets:
       - secret_key
+      - postgres_password
     develop:
       watch:
         - action: rebuild
@@ -26,6 +34,20 @@ services:
           target: "/app/"
           initial_sync: true
 
+  auth-database:
+    image: postgres:15-alpine
+    restart: always
+    volumes:
+      - ./.volume:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: auth-database
+      POSTGRES_USER: tle-auth
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+
 secrets:
   secret_key:
     file: ./.secrets/secret_key.txt
+  postgres_password:
+    file: ./.secrets/postgres_password.txt
