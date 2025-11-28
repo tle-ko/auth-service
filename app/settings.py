@@ -12,20 +12,29 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from dotenv import load_dotenv
 from pathlib import Path
+from typing import Union
 import os
 
 
-def is_truthy(value: str) -> bool:
+def is_truthy(value: Union[str, int, bool, None]) -> bool:
     TRUTHY = ('true', '1', 't', 'y', 'yes', 'on')
     FALSY = ('false', '0', 'f', 'n', 'no', 'off')
-    normalized_value = value.lower()
-    if normalized_value in FALSY:
+    if value is None:
         return False
-    if normalized_value in TRUTHY:
-        return True
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int):
+        return bool(value)
+    if isinstance(value, str):
+        value = value.strip().lower()
+        if value in TRUTHY:
+            return True
+        if value in FALSY:
+            return False
     raise ValueError(
         f'Invalid truthy/falsy value: {value}. '
-        f'Expected one of {TRUTHY + FALSY}.'
+        'Please set the value as an interger, or a boolean or a string. '
+        f'Allowed string values are: {TRUTHY + FALSY}. '
     )
 
 
