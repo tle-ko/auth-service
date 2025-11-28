@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Exit on any error
+set -e
+
 
 function debug_init() {
     echo "[ENTRYPOINT] Running in DEBUG mode."
@@ -11,9 +14,6 @@ function debug_init() {
 
 function main() {
     echo "[ENTRYPOINT] $@"
-
-    # Exit on any error
-    set -e
 
     # Check if DEBUG mode is enabled
     echo 'from django.conf import settings; exit(0 if settings.DEBUG else 1);' \
