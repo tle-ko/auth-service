@@ -14,6 +14,21 @@ from dotenv import load_dotenv
 from pathlib import Path
 import os
 
+
+def is_truthy(value: str) -> bool:
+    TRUTHY = ('true', '1', 't', 'y', 'yes', 'on')
+    FALSY = ('false', '0', 'f', 'n', 'no', 'off')
+    normalized_value = value.lower()
+    if normalized_value in FALSY:
+        return False
+    if normalized_value in TRUTHY:
+        return True
+    raise ValueError(
+        f'Invalid truthy/falsy value: {value}. '
+        f'Expected one of {TRUTHY + FALSY}.'
+    )
+
+
 load_dotenv()
 
 
@@ -34,7 +49,7 @@ assert SECRET_KEY is not None, (
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', False)
+DEBUG = is_truthy(os.getenv('DEBUG', 'false'))
 
 ALLOWED_HOSTS = list(filter(None, os.getenv('ALLOWED_HOSTS', '').split(',')))
 
