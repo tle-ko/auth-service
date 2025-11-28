@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:8000"
+    environment:
+      SECRET_KEY: 'django-insecure-dulqz#%k5aq8%cdx02%55tm9+2q1b%qogh%2#6jbx3zn4ab5pb'
+      DEBUG: 1
+      ALLOWED_HOSTS: '*'
+    develop:
+      watch:
+        - action: rebuild
+          path: "Dockerfile"
+        - action: rebuild
+          path: "docker-compose.develop.yml"
+        - action: rebuild
+          path: "requirements.txt"
+        - action: sync+restart
+          path: "."
+          target: "/app/"
+          initial_sync: true
