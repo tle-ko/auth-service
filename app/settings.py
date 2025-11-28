@@ -10,74 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-import os
 from pathlib import Path
-from typing import Any, Callable, Optional, Union
 
-
-def is_truthy(value: Union[str, int, bool, None]) -> bool:
-    TRUTHY = ('true', '1', 't', 'y', 'yes', 'on')
-    FALSY = ('false', '0', 'f', 'n', 'no', 'off')
-    if value is None:
-        return False
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, int):
-        return bool(value)
-    if isinstance(value, str):
-        value = value.strip().lower()
-        if value in TRUTHY:
-            return True
-        if value in FALSY:
-            return False
-    raise ValueError(
-        f'Invalid truthy/falsy value: {value}. '
-        'Please set the value as an interger, or a boolean or a string. '
-        f'Allowed string values are: {TRUTHY + FALSY}. '
-    )
-
-
-def get_env(key: str,
-            default: Optional[Any] = None,
-            file_key: Optional[str] = None,
-            mapper_fn: Optional[Callable[[Any], Any]] = None,
-            raise_on_none: bool = False,
-            raise_message: str = '') -> Any:
-    """
-    Get environment variable value.
-
-    1. Try to read the value from the environment variable specified by `key`.
-    2. If not set, try to read the value from the file specified by `file_key`.
-    3. If still not set, use the `default` value.
-    4. If still not set, raise an error if `raise_on_none` is `True`.
-    """
-    def inner():
-        # 1. try read from key
-        value = os.getenv(key)
-        if value is not None:
-            return value
-
-        # 2. if not set, try read from file
-        if file_key is not None:
-            file_path = os.getenv(file_key)
-            if file_path is not None:
-                with open(file_path, 'rt') as f:
-                    return f.read().strip()
-
-        # 3. if still not set, try use default
-        if default is not None:
-            return default
-
-        # 4. ... raise error
-        if raise_on_none:
-            raise ValueError(raise_message)
-
-        return None
-
-    if mapper_fn is None:
-        return inner()
-
-    return mapper_fn(inner())
+from app import env
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -88,26 +23,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = get_env(
-    key='SECRET_KEY',
-    file_key='SECRET_KEY_FILE',
-    raise_on_none=True,
-    raise_message=(
-        'SECRET_KEY is not set. '
-        'Please set SECRET_KEY or SECRET_KEY_FILE environment variable.'
-    ),
-)
+SECRET_KEY = env.get('SECRET_KEY',
+                     default=env.get_file_content('SECRET_KEY_FILE'),
+                     required=True)
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = get_env(
-    key='DEBUG',
-    default=False,
-    mapper_fn=is_truthy,
-    raise_on_none=False,
-)
+DEBUG = env.get_bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = list(filter(None, get_env('ALLOWED_HOSTS', '').split(',')))
+ALLOWED_HOSTS = env.get_array('ALLOWED_HOSTS', default=[])
+
 
 assert DEBUG or ALLOWED_HOSTS, (
     'ALLOWED_HOSTS is not set or empty. '
@@ -165,23 +90,11 @@ WSGI_APPLICATION = 'app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'HOST': get_env("POSTGRES_HOST",
-                        raise_on_none=True,
-                        raise_message='POSTGRES_HOST is not set.'),
-        'PORT': get_env("POSTGRES_PORT",
-                        default="5432",
-                        mapper_fn=int,
-                        raise_on_none=False),
-        'NAME': get_env("POSTGRES_DB",
-                        raise_on_none=True,
-                        raise_message='POSTGRES_DB is not set.'),
-        'USER': get_env("POSTGRES_USER",
-                        raise_on_none=True,
-                        raise_message='POSTGRES_USER is not set.'),
-        'PASSWORD': get_env("POSTGRES_PASSWORD",
-                            file_key="POSTGRES_PASSWORD_FILE",
-                            raise_on_none=True,
-                            raise_message='POSTGRES_PASSWORD or POSTGRES_PASSWORD_FILE is not set.')
+        'HOST': env.get("POSTGRES_HOST", required=True),
+        'PORT': env.get_int("POSTGRES_PORT", default=5432, required=True),
+        'NAME': env.get("POSTGRES_DB", required=True),
+        'USER': env.get("POSTGRES_USER", required=True),
+        'PASSWORD': env.get('POSTGRES_PASSWORD', env.get_file_content('POSTGRES_PASSWORD_FILE'), required=True),
     }
 }
 
