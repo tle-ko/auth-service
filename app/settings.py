@@ -34,7 +34,7 @@ DEBUG = env.get_bool('DEBUG', default=False)
 ALLOWED_HOSTS = env.get_array('ALLOWED_HOSTS', default=[])
 
 
-assert DEBUG or ALLOWED_HOSTS, (
+assert ALLOWED_HOSTS, (
     'ALLOWED_HOSTS is not set or empty. '
     'Please set ALLOWED_HOSTS as a comma-separated list (e.g., "example.com,www.example.com").'
 )
