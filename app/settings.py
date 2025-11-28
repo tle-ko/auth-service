@@ -164,8 +164,24 @@ WSGI_APPLICATION = 'app.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'HOST': get_env("POSTGRES_HOST",
+                        raise_on_none=True,
+                        raise_message='POSTGRES_HOST is not set.'),
+        'PORT': get_env("POSTGRES_PORT",
+                        default="5432",
+                        mapper_fn=int,
+                        raise_on_none=False),
+        'NAME': get_env("POSTGRES_DB",
+                        raise_on_none=True,
+                        raise_message='POSTGRES_DB is not set.'),
+        'USER': get_env("POSTGRES_USER",
+                        raise_on_none=True,
+                        raise_message='POSTGRES_USER is not set.'),
+        'PASSWORD': get_env("POSTGRES_PASSWORD",
+                            file_key="POSTGRES_PASSWORD_FILE",
+                            raise_on_none=True,
+                            raise_message='POSTGRES_PASSWORD or POSTGRES_PASSWORD_FILE is not set.')
     }
 }
 
