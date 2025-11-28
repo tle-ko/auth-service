@@ -1,13 +1,28 @@
 #!/bin/bash
 
-echo "[ENTRYPOINT] $@"
 
-# Exit on any error
-set -e
+function debug_init() {
+    echo "[ENTRYPOINT] Running in DEBUG mode."
 
-if [ "$DEBUG" = "true" ]; then
+    python manage.py migrate --no-input
     python manage.py collectstatic --no-input
-fi
+}
 
-# Run server
-gunicorn app.wsgi:application "$@"
+
+function main() {
+    echo "[ENTRYPOINT] $@"
+
+    # Exit on any error
+    set -e
+
+    # Check if DEBUG mode is enabled
+    echo 'from django.conf import settings; exit(0 if settings.DEBUG else 1);' \
+        | python manage.py shell --no-imports \
+        && debug_init
+
+    # Run server
+    gunicorn app.wsgi:application "$@"
+}
+
+
+main "$@"
