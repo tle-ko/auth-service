@@ -31,7 +31,7 @@ class HealthCheckAPIViewTest(TestCase):
 class EnvModuleTest(TestCase):
     def setUp(self):
         # 테스트 전 환경 변수 초기화
-        self.test_keys = ['TEST_VAR', 'TEST_ARRAY', 'TEST_JSON',
+        self.test_keys = ['TEST_VAR', 'TEST_JSON',
                           'TEST_BOOL', 'TEST_INT', 'TEST_FILE']
         for key in self.test_keys:
             if key in os.environ:
@@ -60,29 +60,6 @@ class EnvModuleTest(TestCase):
         with self.assertRaises(ValueError) as cm:
             env.get('TEST_VAR', required=True)
         self.assertIn('required but not set', str(cm.exception))
-
-    def test_get_array_existing_value(self):
-        os.environ['TEST_ARRAY'] = 'a,b,c'
-        result = env.get_array('TEST_ARRAY')
-        self.assertEqual(result, ['a', 'b', 'c'])
-
-    def test_get_array_with_spaces(self):
-        os.environ['TEST_ARRAY'] = ' a , b , c '
-        result = env.get_array('TEST_ARRAY')
-        self.assertEqual(result, ['a', 'b', 'c'])
-
-    def test_get_array_empty_items(self):
-        os.environ['TEST_ARRAY'] = 'a,,b,'
-        result = env.get_array('TEST_ARRAY')
-        self.assertEqual(result, ['a', 'b'])
-
-    def test_get_array_default_value(self):
-        result = env.get_array('TEST_ARRAY', ['default'])
-        self.assertEqual(result, ['default'])
-
-    def test_get_array_required_raises_error(self):
-        with self.assertRaises(ValueError):
-            env.get_array('TEST_ARRAY', required=True)
 
     def test_get_bool_truthy_values(self):
         truthy_values = ['true', '1', 't', 'y', 'yes', 'on', 'TRUE', 'True']
@@ -182,47 +159,47 @@ class EnvModuleTest(TestCase):
         invalid_values = ['true', '1', 'invalid', None]
         for value in invalid_values:
             self.assertFalse(env.is_falsy(value))
-    
+
     def test_get_json_valid_object(self):
         os.environ['TEST_JSON'] = '{"key": "value", "number": 42}'
         result = env.get_json('TEST_JSON')
         self.assertEqual(result, {'key': 'value', 'number': 42})
-    
+
     def test_get_json_valid_array(self):
         os.environ['TEST_JSON'] = '[1, 2, 3]'
         result = env.get_json('TEST_JSON')
         self.assertEqual(result, [1, 2, 3])
-    
+
     def test_get_json_valid_string(self):
         os.environ['TEST_JSON'] = '"test string"'
         result = env.get_json('TEST_JSON')
         self.assertEqual(result, 'test string')
-    
+
     def test_get_json_valid_number(self):
         os.environ['TEST_JSON'] = '123'
         result = env.get_json('TEST_JSON')
         self.assertEqual(result, 123)
-    
+
     def test_get_json_valid_boolean(self):
         os.environ['TEST_JSON'] = 'true'
         result = env.get_json('TEST_JSON')
         self.assertTrue(result)
-    
+
     def test_get_json_valid_null(self):
         os.environ['TEST_JSON'] = 'null'
         result = env.get_json('TEST_JSON')
         self.assertIsNone(result)
-    
+
     def test_get_json_invalid_value(self):
         os.environ['TEST_JSON'] = 'not a json'
         with self.assertRaises(ValueError) as cm:
             env.get_json('TEST_JSON')
         self.assertIn('invalid JSON value', str(cm.exception))
-    
+
     def test_get_json_default_value(self):
         result = env.get_json('TEST_JSON', {'default': 'value'})
         self.assertEqual(result, {'default': 'value'})
-    
+
     def test_get_json_required_raises_error(self):
         with self.assertRaises(ValueError) as cm:
             env.get_json('TEST_JSON', required=True)

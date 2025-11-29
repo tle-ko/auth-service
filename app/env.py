@@ -48,43 +48,6 @@ def get(key: str, default: Optional[str] = None, required: bool = False) -> Opti
     return retval
 
 
-def get_array(key: str, default: Optional[List[str]] = None, required: bool = False, empty: bool = True) -> Optional[List[str]]:
-    """환경 변수를 쉼표로 구분된 배열로 파싱합니다.
-
-    Args:
-        key: 환경 변수 이름
-        default: 기본값 (환경 변수가 없을 때 반환)
-        required: 필수 여부 (True일 때 환경 변수가 없으면 예외 발생)
-
-    Returns:
-        쉼표로 구분된 문자열 배열
-
-    Raises:
-        ValueError: required=True이고 환경 변수가 설정되지 않은 경우
-    """
-    value = os.getenv(key)
-    retval = default
-
-    if value is not None:
-        retval = []
-        for item in value.strip().split(','):
-            item = item.strip()
-            retval.append(item)
-
-    if required and (retval is None):
-        raise ValueError(
-            f'Environment variable "{key}" is required but not set.'
-        )
-
-    if not empty and (retval is not None and not retval):
-        raise ValueError(
-            f'Environment variable "{key}" is empty. '
-            f'Please set "{key}" as a comma-separated list.'
-        )
-
-    return retval
-
-
 def get_json(key: str, default: Optional[JSON] = None, required: bool = False) -> Optional[JSON]:
     value = os.getenv(key)
     retval = default
