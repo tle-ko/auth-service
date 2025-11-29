@@ -76,3 +76,121 @@ class GetTest(TestCase):
         """
         self.assertIsNone(env.get('MISSING_VAR', default=''))
         self.assertEqual(env.get('MISSING_VAR', default='', blank=True), '')
+
+
+class GetBoolTest(TestCase):
+    def test_parses_truthy_values(self):
+        """다양한 참 값 문자열을 True로 파싱하는지 확인한다.
+
+        대소문자 구분 없이 'true', '1', 't', 'y', 'yes', 'on'을 True로 인식해야 한다.
+        """
+        for value in ('true', '1', 't', 'y', 'yes', 'on', 'TRUE', 'True', 'YES'):
+            with self.subTest(value=value):
+                with patch.dict(os.environ, {'BOOL_VAR': value}):
+                    self.assertTrue(env.get_bool('BOOL_VAR'))
+
+    def test_parses_falsy_values(self):
+        """다양한 거짓 값 문자열을 False로 파싱하는지 확인한다.
+
+        대소문자 구분 없이 'false', '0', 'f', 'n', 'no', 'off'를 False로 인식해야 한다.
+        """
+        for value in ('false', '0', 'f', 'n', 'no', 'off', 'FALSE', 'False', 'NO'):
+            with self.subTest(value=value):
+                with patch.dict(os.environ, {'BOOL_VAR': value}):
+                    self.assertFalse(env.get_bool('BOOL_VAR'))
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_default_parameter(self):
+        """환경 변수가 설정되지 않았을 때 default 파라미터 값을 반환하는지 확인한다.
+
+        default가 없으면 None을 반환한다.
+        """
+        self.assertIsNone(env.get_bool('MISSING_VAR'))
+        self.assertTrue(env.get_bool('MISSING_VAR', default=True))
+        self.assertFalse(env.get_bool('MISSING_VAR', default=False))
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_required_parameter(self):
+        """필수 환경 변수가 설정되지 않았을 때 ValueError를 발생시키는지 확인한다."""
+        with self.assertRaises(ValueError):
+            env.get_bool('REQUIRED_VAR', required=True)
+
+    @patch.dict(os.environ, {'BOOL_VAR': 'invalid'})
+    def test_raises_for_invalid_value(self):
+        """불린으로 파싱할 수 없는 값에 대해 ValueError를 발생시키는지 확인한다.
+
+        보안상 잘못된 값을 조용히 무시하지 않고 명시적으로 에러를 발생시켜야 한다.
+        """
+        with self.assertRaises(ValueError):
+            env.get_bool('BOOL_VAR')
+
+    @patch.dict(os.environ, {'BOOL_VAR': ''})
+    def test_raises_for_empty_string(self):
+        """빈 문자열에 대해 ValueError를 발생시키는지 확인한다.
+
+        빈 문자열을 False로 해석하면 보안 문제가 발생할 수 있으므로 에러를 발생시켜야 한다.
+        """
+        with self.assertRaises(ValueError):
+            env.get_bool('BOOL_VAR')
+
+    @patch.dict(os.environ, {'BOOL_VAR': '  true  '})
+    def test_strip_parameter(self):
+        """공백이 포함된 불린 값에서 strip 파라미터 동작을 확인한다.
+
+        기본적으로 strip=True이므로 앞뒤 공백을 제거하고 파싱한다.
+        strip=False로 설정하면 공백을 유지하여 파싱에 실패한다.
+        """
+        self.assertTrue(env.get_bool('BOOL_VAR'))
+        with self.assertRaises(ValueError):
+            env.get_bool('BOOL_VAR', strip=False)
+
+    @patch.dict(os.environ, {'BOOL_VAR': '   '})
+    def test_raises_for_whitespace_only(self):
+        """공백만 있는 값에 대해 ValueError를 발생시키는지 확인한다.
+
+        공백 제거 후 빈 문자열이 되면 에러를 발생시켜야 한다.
+        """
+        with self.assertRaises(ValueError):
+            env.get_bool('BOOL_VAR')
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_required_with_default(self):
+        """required와 default를 함께 사용할 때 default 값을 반환하는지 확인한다.
+
+        환경 변수가 없어도 default가 있으면 required=True여도 에러가 발생하지 않는다.
+        """
+        self.assertTrue(
+            env.get_bool('MISSING_VAR', default=True, required=True)
+        )
+        self.assertFalse(
+            env.get_bool('MISSING_VAR', default=False, required=True)
+        )
+
+    @patch.dict(os.environ, {'BOOL_VAR': '0x1'})
+    def test_raises_for_hex_value(self):
+        """유사 형식의 값에 대해 ValueError를 발생시키는지 확인한다.
+
+        보안상 '0x1', '0b1' 같은 유사 형식을 허용하지 않아야 한다.
+        """
+        with self.assertRaises(ValueError):
+            env.get_bool('BOOL_VAR')
+
+    @patch.dict(os.environ, {'BOOL_VAR': 'True1'})
+    def test_raises_for_partial_match(self):
+        """부분 일치 값에 대해 ValueError를 발생시키는지 확인한다.
+
+        보안상 'True1', '1true' 같은 부분 일치를 허용하지 않아야 한다.
+        """
+        with self.assertRaises(ValueError):
+            env.get_bool('BOOL_VAR')
+
+    def test_raises_for_null_like_strings(self):
+        """null 유사 문자열에 대해 ValueError를 발생시키는지 확인한다.
+
+        보안상 'null', 'none', 'undefined' 같은 값을 False로 해석하지 않아야 한다.
+        """
+        for value in ('null', 'none', 'undefined', 'NULL', 'None', 'UNDEFINED'):
+            with self.subTest(value=value):
+                with patch.dict(os.environ, {'BOOL_VAR': value}):
+                    with self.assertRaises(ValueError):
+                        env.get_bool('BOOL_VAR')
