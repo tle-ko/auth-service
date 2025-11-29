@@ -1,10 +1,10 @@
 services:
-  auth-service:
+  tle-auth-service:
     build:
       context: .
       dockerfile: Dockerfile
     depends_on:
-      auth-database:
+      tle-auth-database:
         condition: service_healthy
         restart: true
     ports:
@@ -12,10 +12,9 @@ services:
     environment:
       SECRET_KEY_FILE: /run/secrets/secret_key
       DEBUG: "true"
-      ALLOWED_HOSTS: "localhost,127.0.0.1"
-      POSTGRES_HOST: auth-database
+      POSTGRES_HOST: tle-auth-database
       POSTGRES_PORT: 5432
-      POSTGRES_DB: auth-database
+      POSTGRES_DB: tle-auth
       POSTGRES_USER: tle-auth
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
     secrets:
@@ -34,7 +33,7 @@ services:
           target: "/app/"
           initial_sync: true
 
-  auth-database:
+  tle-auth-database:
     image: postgres:15-alpine
     restart: always
     healthcheck:
@@ -43,13 +42,16 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - ./.volume:/var/lib/postgresql/data
+      - tle-auth-volume:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: auth-database
+      POSTGRES_DB: tle-auth
       POSTGRES_USER: tle-auth
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
     secrets:
       - postgres_password
+
+volumes:
+  tle-auth-volume:
 
 secrets:
   secret_key:
