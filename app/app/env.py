@@ -2,15 +2,20 @@
 환경 변수와 관련된 기능 혹은 유틸리티 모음.
 """
 
+import json
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional, Union
 
 import dotenv
 
 # Define truthy and falsy values
 _TRUTHY_VALUES = ('true', '1', 't', 'y', 'yes', 'on')
 _FALSY_VALUES = ('false', '0', 'f', 'n', 'no', 'off')
+
+# Define JSON type alias
+_JSON_SCALAR = Union[str, int, float, bool, None]
+_JSON = Union[Dict[str, '_JSON'], List['_JSON'], _JSON_SCALAR]
 
 
 def load(dotenv_path: Optional[Path] = None):
@@ -90,6 +95,39 @@ def get_bool(key: str, default: Optional[bool] = None, strip: bool = True, requi
         )
 
     return boolean_value
+
+
+def get_json(key: str, default: Optional[_JSON] = None, required: bool = False) -> Optional[_JSON]:
+    """환경 변수 값을 JSON으로 파싱하여 반환하거나 기본값을 반환합니다.
+
+    Args:
+        key: 환경 변수 이름
+        default: 기본값 (환경 변수가 없을 때 반환)
+        required: 필수 여부 (True일 때 환경 변수가 없으면 예외 발생)
+
+    Returns:
+        JSON으로 파싱된 값 또는 기본값
+
+    Raises:
+        ValueError: 환경 변수 값이 올바른 JSON이 아니거나 required=True이고 환경 변수가 설정되지 않은 경우
+    """
+    raw_value = os.getenv(key)
+    json_value = default
+
+    if raw_value is not None:
+        try:
+            json_value = json.loads(raw_value)
+        except ValueError as e:
+            raise ValueError(
+                f'Environment variable "{key}" has invalid JSON value.'
+            ) from e
+
+    if required and (json_value is None):
+        raise ValueError(
+            f'Environment variable "{key}" is required but not set.'
+        )
+
+    return json_value
 
 
 def _is_truthy(value: Optional[str], strip: bool = True) -> bool:
