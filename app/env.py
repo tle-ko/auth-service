@@ -155,7 +155,7 @@ def get_file_content(key: str, default: Optional[str] = None, required: bool = F
 
     if value is not None:
         try:
-            retval = Path(value).read_text()
+            retval = Path(value).read_text().strip()
         except FileNotFoundError:
             raise ValueError(
                 f'Environment variable "{key}" has invalid file path.'
