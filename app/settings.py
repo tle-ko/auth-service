@@ -33,7 +33,7 @@ DEBUG = env.get_bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = env.get_array('ALLOWED_HOSTS',
                               default=['localhost', '127.0.0.1'],
-                              allow_empty=False)
+                              empty=False)
 
 
 # Application definition

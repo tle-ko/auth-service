@@ -45,7 +45,7 @@ def get(key: str, default: Optional[str] = None, required: bool = False) -> Opti
     return retval
 
 
-def get_array(key: str, default: Optional[List[str]] = None, required: bool = False, allow_empty: bool = True) -> Optional[List[str]]:
+def get_array(key: str, default: Optional[List[str]] = None, required: bool = False, empty: bool = True) -> Optional[List[str]]:
     """환경 변수를 쉼표로 구분된 배열로 파싱합니다.
 
     Args:
@@ -73,7 +73,7 @@ def get_array(key: str, default: Optional[List[str]] = None, required: bool = Fa
             f'Environment variable "{key}" is required but not set.'
         )
 
-    if not allow_empty and (retval is not None and not retval):
+    if not empty and (retval is not None and not retval):
         raise ValueError(
             f'Environment variable "{key}" is empty. '
             f'Please set "{key}" as a comma-separated list.'
