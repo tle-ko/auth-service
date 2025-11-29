@@ -1,5 +1,6 @@
 services:
   tle-auth-service:
+    restart: always
     build:
       context: .
       dockerfile: Dockerfile
