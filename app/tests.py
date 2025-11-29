@@ -138,6 +138,39 @@ class EnvModuleTest(TestCase):
         with self.assertRaises(ValueError):
             env.get_file_content('TEST_FILE', required=True)
 
+    def test_get_file_content_strips_whitespace(self):
+        with NamedTemporaryFile(mode='w', delete=False) as f:
+            f.write('  test content with spaces  \n')
+            temp_path = f.name
+        try:
+            os.environ['TEST_FILE'] = temp_path
+            result = env.get_file_content('TEST_FILE')
+            self.assertEqual(result, 'test content with spaces')
+        finally:
+            os.unlink(temp_path)
+
+    def test_get_file_content_strips_newlines(self):
+        with NamedTemporaryFile(mode='w', delete=False) as f:
+            f.write('\n\ntest content\n\n')
+            temp_path = f.name
+        try:
+            os.environ['TEST_FILE'] = temp_path
+            result = env.get_file_content('TEST_FILE')
+            self.assertEqual(result, 'test content')
+        finally:
+            os.unlink(temp_path)
+
+    def test_get_file_content_strips_tabs(self):
+        with NamedTemporaryFile(mode='w', delete=False) as f:
+            f.write('\t\ttest content\t\t')
+            temp_path = f.name
+        try:
+            os.environ['TEST_FILE'] = temp_path
+            result = env.get_file_content('TEST_FILE')
+            self.assertEqual(result, 'test content')
+        finally:
+            os.unlink(temp_path)
+
     def test_is_truthy_valid_values(self):
         truthy_values = ['true', '1', 't', 'y', 'yes', 'on']
         for value in truthy_values:
