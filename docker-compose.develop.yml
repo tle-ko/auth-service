@@ -32,6 +32,13 @@ services:
           path: "."
           target: "/app/"
           initial_sync: true
+          ignore:
+            - ".env"
+            - ".git"
+            - ".secrets"
+            - "__pycache__"
+            - "*.pyc"
+            - "README.md"
 
   tle-auth-database:
     image: postgres:15-alpine
