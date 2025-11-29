@@ -1,6 +1,9 @@
 import os
 from unittest.mock import patch
+from pathlib import Path
 
+from django.conf import settings
+from django.core.files.temp import NamedTemporaryFile
 from django.test import TestCase
 
 from app import env
@@ -289,3 +292,134 @@ class GetJsonTest(TestCase):
         환경 변수 자체가 null인 경우와 객체 내부에 null이 있는 경우를 구분해야 한다.
         """
         self.assertEqual(env.get_json('JSON_VAR'), {'key': None})
+
+
+class GetFileContentTest(TestCase):
+    def _create_temp_file(self) -> Path:
+        """임시 디렉토리와 파일을 생성하고 (dirname, filename) 튜플을 반환하는 헬퍼 함수.
+        """
+        with NamedTemporaryFile(mode='w+', delete=False) as f:
+            self.addCleanup(os.unlink, f.name)
+            return Path(f.name).resolve()
+
+    def test_returns_file_content(self):
+        """파일 내용을 읽어서 반환하는지 확인한다."""
+        file = self._create_temp_file()
+        file.write_text('test content')
+        with patch.dict(os.environ, {'FILE_VAR': str(file)}):
+            self.assertEqual(env.get_file_content('FILE_VAR'), 'test content')
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_default_parameter(self):
+        """환경 변수가 설정되지 않았을 때 default 파라미터 값을 반환하는지 확인한다.
+
+        default가 없으면 None을 반환한다.
+        """
+        self.assertIsNone(env.get_file_content('MISSING_VAR'))
+        self.assertEqual(env.get_file_content('MISSING_VAR', default='default'),
+                         'default')
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_required_parameter(self):
+        """필수 환경 변수가 설정되지 않았을 때 ValueError를 발생시키는지 확인한다."""
+        with self.assertRaises(ValueError):
+            env.get_file_content('REQUIRED_VAR', required=True)
+
+    @patch.dict(os.environ, {'FILE_VAR': '/nonexistent/path'})
+    def test_raises_for_nonexistent_file(self):
+        """존재하지 않는 파일에 대해 ValueError를 발생시키는지 확인한다."""
+        with self.assertRaises(ValueError):
+            env.get_file_content('FILE_VAR')
+
+    def test_raises_for_invalid_relative_to(self):
+        """relative_to가 디렉토리가 아닌 경우 ValueError를 발생시키는지 확인한다."""
+        file = self._create_temp_file()
+        file.write_text('content')
+        with patch.dict(os.environ, {'FILE_VAR': str(file)}):
+            with self.assertRaises(ValueError):
+                env.get_file_content('FILE_VAR', relative_to=file)
+
+    def test_strip_parameter(self):
+        """파일 내용의 앞뒤 공백을 제거하는지 확인한다.
+
+        기본적으로 strip=True이며, strip=False로 설정하면 공백을 유지한다.
+        """
+        file = self._create_temp_file()
+        file.write_text('  content  ')
+        with patch.dict(os.environ, {'FILE_VAR': str(file)}):
+            self.assertEqual(env.get_file_content('FILE_VAR'),
+                             'content')
+            self.assertEqual(env.get_file_content('FILE_VAR', strip=False),
+                             '  content  ')
+
+    def test_raises_for_invalid_encoding(self):
+        """잘못된 인코딩으로 파일을 읽을 때 ValueError를 발생시키는지 확인한다."""
+        file = self._create_temp_file()
+        file.write_bytes(b'\xff\xfe')
+        with patch.dict(os.environ, {'FILE_VAR': str(file)}):
+            with self.assertRaises(ValueError):
+                env.get_file_content('FILE_VAR', encoding='utf-8')
+
+    def test_blank_parameter(self):
+        """빈 파일 내용을 None으로 처리하는지 확인한다.
+
+        기본적으로 blank=False이므로 빈 문자열은 None으로 변환된다.
+        blank=True로 설정하면 빈 문자열을 그대로 반환한다.
+        required와 함께 사용할 때도 blank=True면 빈 문자열을 허용한다.
+        """
+        file = self._create_temp_file()
+        file.write_text('')
+        with patch.dict(os.environ, {'FILE_VAR': str(file)}):
+            self.assertIsNone(env.get_file_content('FILE_VAR'))
+            self.assertEqual(env.get_file_content('FILE_VAR', blank=True), '')
+            with self.assertRaises(ValueError):
+                env.get_file_content('FILE_VAR', required=True)
+            self.assertEqual(env.get_file_content('FILE_VAR', required=True, blank=True),
+                             '')
+
+    def test_blank_with_whitespace(self):
+        """공백만 있는 파일이 strip 후 빈 문자열로 처리되는지 확인한다.
+
+        strip이 먼저 적용되어 공백이 제거되고, 그 결과 빈 문자열이 되면 blank 처리 로직이 적용된다.
+        """
+        file = self._create_temp_file()
+        file.write_text('   ')
+        with patch.dict(os.environ, {'FILE_VAR': str(file)}):
+            self.assertIsNone(env.get_file_content('FILE_VAR'))
+            self.assertEqual(env.get_file_content('FILE_VAR', blank=True), '')
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_required_with_default(self):
+        """required와 default를 함께 사용할 때 default 값을 반환하는지 확인한다.
+
+        환경 변수가 없어도 default가 있으면 required=True여도 에러가 발생하지 않는다.
+        """
+        self.assertEqual(env.get_file_content('MISSING_VAR', default='default', required=True),
+                         'default')
+
+    def test_relative_to_allows_file_in_directory(self):
+        """허용된 디렉토리 내부의 파일은 정상적으로 읽을 수 있는지 확인한다."""
+        file = self._create_temp_file()
+        file.write_text('allowed content')
+        with patch.dict(os.environ, {'FILE_VAR': str(file)}):
+            self.assertEqual(env.get_file_content('FILE_VAR', relative_to=str(file.parent)),
+                             'allowed content')
+
+    def test_does_not_leak_file_existence_outside_relative_to(self):
+        """relative_to 외부 경로 접근 시 파일 존재 여부를 노출하지 않는지 확인한다.
+
+        보안상 파일 존재 여부, 파일/디렉토리 구분을 노출하지 않고 동일한 에러를 발생시켜야 한다.
+        """
+        file = self._create_temp_file()
+        file.write_text('secret')
+        relative_to = settings.BASE_DIR / 'nonexistent_dir'
+        for case, filename in [
+            ('existing_file', str(file)),
+            ('nonexistent_file', f'{file.parent}/nonexistent_file_12345.txt'),
+            ('directory', str(file.parent)),
+        ]:
+            with self.subTest(case=case):
+                with patch.dict(os.environ, {'FILE_VAR': filename}):
+                    with self.assertRaises(ValueError):
+                        env.get_file_content('FILE_VAR',
+                                             relative_to=relative_to)
