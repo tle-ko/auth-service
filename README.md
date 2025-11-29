@@ -156,7 +156,7 @@ Docker compose를 사용하지 않고 직접 컨테이너를 실행할 경우 �
 
 ```yaml
 services:
-  auth-service:
+  tle-auth-service:
     ports:
       - "8080:8000"  # 외부:내부 포트
 ```
