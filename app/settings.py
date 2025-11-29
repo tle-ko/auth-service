@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+from app import env
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,12 +23,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-dulqz#%k5aq8%cdx02%55tm9+2q1b%qogh%2#6jbx3zn4ab5pb'
+SECRET_KEY = env.get('SECRET_KEY',
+                     default=env.get_file_content('SECRET_KEY_FILE'),
+                     required=True)
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.get_bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env.get_json('ALLOWED_HOSTS',
+                             default=['localhost', '127.0.0.1'])
 
 
 # Application definition
@@ -77,8 +84,12 @@ WSGI_APPLICATION = 'app.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'HOST': env.get("POSTGRES_HOST", required=True),
+        'PORT': env.get_int("POSTGRES_PORT", default=5432),
+        'NAME': env.get("POSTGRES_DB", required=True),
+        'USER': env.get("POSTGRES_USER", required=True),
+        'PASSWORD': env.get('POSTGRES_PASSWORD', default=env.get_file_content('POSTGRES_PASSWORD_FILE'), required=True),
     }
 }
 
@@ -118,6 +129,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATIC_ROOT = BASE_DIR / '.static'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

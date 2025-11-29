@@ -14,15 +14,29 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
+from django.urls import re_path
 import app.views
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-
-    # Swagger Support
-    path('swagger/', app.views.schema.with_ui('swagger')),
-    path('swagger/(?P<format>\\.json|\\.yaml)', app.views.schema.without_ui()),
+    # Service Status
+    # - `HEALTHCHECK` support for Docker Container
+    path('health/', app.views.HealthCheckAPIView.as_view()),
 ]
+
+if settings.DEBUG:
+    urlpatterns += [
+        path('admin/', admin.site.urls),
+
+        # Swagger Support
+        path('swagger/', app.views.schema.with_ui('swagger')),
+        re_path(r'swagger/(?P<format>\.json|\.yaml)',
+                app.views.schema.without_ui()),
+
+        # Serve static files only in development
+        *static(settings.STATIC_URL, document_root=settings.STATIC_ROOT),
+    ]
