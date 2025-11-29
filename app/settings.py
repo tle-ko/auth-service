@@ -32,14 +32,8 @@ SECRET_KEY = env.get('SECRET_KEY',
 DEBUG = env.get_bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = env.get_array('ALLOWED_HOSTS',
-                              default=['localhost', '127.0.0.1'])
-
-
-if not ALLOWED_HOSTS:
-    raise ValueError(
-        'ALLOWED_HOSTS is not set or empty. '
-        'Please set ALLOWED_HOSTS as a comma-separated list (e.g., "example.com,www.example.com").'
-    )
+                              default=['localhost', '127.0.0.1'],
+                              allow_empty=False)
 
 
 # Application definition
