@@ -49,6 +49,19 @@ def get(key: str, default: Optional[str] = None, required: bool = False) -> Opti
 
 
 def get_json(key: str, default: Optional[JSON] = None, required: bool = False) -> Optional[JSON]:
+    """환경 변수 값을 JSON으로 파싱하여 반환합니다.
+
+    Args:
+        key: 환경 변수 이름
+        default: 기본값 (환경 변수가 없거나 JSON 파싱에 실패할 때 반환)
+        required: 필수 여부 (True일 때 환경 변수가 없으면 예외 발생)
+
+    Returns:
+        JSON으로 파싱된 값 또는 기본값
+
+    Raises:
+        ValueError: 환경 변수 값이 올바른 JSON이 아니거나 required=True이고 환경 변수가 설정되지 않은 경우
+    """
     value = os.getenv(key)
     retval = default
 
