@@ -31,7 +31,8 @@ SECRET_KEY = env.get('SECRET_KEY',
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.get_bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = env.get_array('ALLOWED_HOSTS', default=[])
+ALLOWED_HOSTS = env.get_array('ALLOWED_HOSTS',
+                              default=['localhost', '127.0.0.1'])
 
 
 if not ALLOWED_HOSTS:
