@@ -7,6 +7,8 @@ set -e
 function main() {
     echo "[ENTRYPOINT] Arguments: $@"
 
+    wait_for_db
+
     if is_debug_mode; then
         debug_init
     fi
@@ -32,6 +34,23 @@ function is_debug_mode() {
     # 해당 파싱 방식이 반영될 수 있도록 app/settings.py에서 직접 DEBUG 값을 관측.
     echo 'from django.conf import settings; exit(0 if settings.DEBUG else 1);' \
         | python manage.py shell --no-imports
+}
+
+
+function wait_for_db() {
+    local retries=30
+    local wait=2
+    echo "[ENTRYPOINT] Waiting for database to be ready..."
+    for i in $(seq 1 $retries); do
+        if python manage.py migrate --plan > /dev/null 2>&1; then
+            echo "[ENTRYPOINT] Database is ready."
+            return 0
+        fi
+        echo "[ENTRYPOINT] Database not ready yet (attempt $i/$retries), waiting $wait seconds..."
+        sleep $wait
+    done
+    echo "[ENTRYPOINT] Database not ready after $((retries * wait)) seconds, exiting."
+    exit 1
 }
 
 
