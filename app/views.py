@@ -41,8 +41,9 @@ class HealthCheckAPIView(APIView):
     def get(self, request: HttpRequest):
         # Database Connectivity Check
         try:
-            connection = connections['default']
-            connection.cursor()  # 연결 시도
+            with connections['default'].cursor():
+                # Just testing the connection
+                pass
         except OperationalError:
             raise APIException("Database connection failed.")
 
