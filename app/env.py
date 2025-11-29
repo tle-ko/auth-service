@@ -2,16 +2,19 @@
 환경 변수와 관련된 기능 혹은 유틸리티 모음.
 """
 
+import json
 import os
 from dotenv import load_dotenv
 from pathlib import Path
-from typing import Iterable
-from typing import List
-from typing import Optional
+from typing import Dict, Iterable, List, Optional, Union
 
 
 TRUTHY_VALUES = ('true', '1', 't', 'y', 'yes', 'on')
 FALSY_VALUES = ('false', '0', 'f', 'n', 'no', 'off')
+
+
+JSON_SCALAR = Union[str, int, float, bool, None]
+JSON = Union[Dict[str, 'JSON'], List['JSON'], JSON_SCALAR]
 
 
 load_dotenv()
@@ -77,6 +80,26 @@ def get_array(key: str, default: Optional[List[str]] = None, required: bool = Fa
         raise ValueError(
             f'Environment variable "{key}" is empty. '
             f'Please set "{key}" as a comma-separated list.'
+        )
+
+    return retval
+
+
+def get_json(key: str, default: Optional[JSON] = None, required: bool = False) -> Optional[JSON]:
+    value = os.getenv(key)
+    retval = default
+
+    if value is not None:
+        try:
+            retval = json.loads(value)
+        except json.JSONDecodeError:
+            raise ValueError(
+                f'Environment variable "{key}" has invalid JSON value.'
+            )
+
+    if required and (retval is None):
+        raise ValueError(
+            f'Environment variable "{key}" is required but not set.'
         )
 
     return retval
