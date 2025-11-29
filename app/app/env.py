@@ -5,17 +5,13 @@
 import json
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Any, Optional
 
 import dotenv
 
 # Define truthy and falsy values
 _TRUTHY_VALUES = ('true', '1', 't', 'y', 'yes', 'on')
 _FALSY_VALUES = ('false', '0', 'f', 'n', 'no', 'off')
-
-# Define JSON type alias
-_JSON_SCALAR = Union[str, int, float, bool, None]
-_JSON = Union[Dict[str, '_JSON'], List['_JSON'], _JSON_SCALAR]
 
 
 def load(dotenv_path: Optional[Path] = None):
@@ -97,7 +93,7 @@ def get_bool(key: str, default: Optional[bool] = None, strip: bool = True, requi
     return boolean_value
 
 
-def get_json(key: str, default: Optional[_JSON] = None, required: bool = False) -> Optional[_JSON]:
+def get_json(key: str, default: Optional[Any] = None, required: bool = False) -> Optional[Any]:
     """환경 변수 값을 JSON으로 파싱하여 반환하거나 기본값을 반환합니다.
 
     Args:
