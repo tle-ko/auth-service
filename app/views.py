@@ -1,3 +1,5 @@
+from django.db import connections
+from django.db.utils import OperationalError
 from django.http import HttpRequest
 from django.http import HttpResponse
 from drf_yasg.openapi import Contact
@@ -5,6 +7,7 @@ from drf_yasg.openapi import Info
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg.views import get_schema_view
 from rest_framework import status
+from rest_framework.exceptions import APIException
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
 
@@ -36,4 +39,11 @@ class HealthCheckAPIView(APIView):
         }
     )
     def get(self, request: HttpRequest):
+        # Database Conectivity Check
+        try:
+            connection = connections['default']
+            connection.cursor()  # 연결 시도
+        except OperationalError:
+            raise APIException("Database connection failed.")
+
         return HttpResponse(status=status.HTTP_200_OK)
