@@ -134,7 +134,7 @@ def get_int(key: str, default: Optional[int] = None, required: bool = False) -> 
             return int(value)
         except ValueError:
             raise ValueError(
-                f'Environment variable "{key}" has invalid integer value: {value}'
+                f'Environment variable "{key}" has invalid integer value:'
             )
 
     if default is not None:
@@ -169,7 +169,7 @@ def get_file_content(key: str, default: Optional[str] = None, required: bool = F
             return Path(value).read_text()
         except FileNotFoundError:
             raise ValueError(
-                f'Environment variable "{key}" has invalid file path: {value}'
+                f'Environment variable "{key}" has invalid file path.'
             )
 
     if default is not None:
