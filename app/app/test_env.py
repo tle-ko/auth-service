@@ -194,3 +194,98 @@ class GetBoolTest(TestCase):
                 with patch.dict(os.environ, {'BOOL_VAR': value}):
                     with self.assertRaises(ValueError):
                         env.get_bool('BOOL_VAR')
+
+
+class GetJsonTest(TestCase):
+    @patch.dict(os.environ, {'JSON_VAR': '{"key": "value"}'})
+    def test_parses_dict(self):
+        """JSON 객체 문자열을 딕셔너리로 파싱하는지 확인한다."""
+        self.assertEqual(env.get_json('JSON_VAR'), {'key': 'value'})
+
+    @patch.dict(os.environ, {'JSON_VAR': '[1, 2, 3]'})
+    def test_parses_list(self):
+        """JSON 배열 문자열을 리스트로 파싱하는지 확인한다."""
+        self.assertEqual(env.get_json('JSON_VAR'), [1, 2, 3])
+
+    @patch.dict(os.environ, {'JSON_VAR': '"string"'})
+    def test_parses_string(self):
+        """JSON 문자열을 파싱하는지 확인한다."""
+        self.assertEqual(env.get_json('JSON_VAR'), 'string')
+
+    @patch.dict(os.environ, {'JSON_VAR': 'null'})
+    def test_parses_null(self):
+        """JSON null 값을 None으로 파싱하는지 확인한다."""
+        self.assertIsNone(env.get_json('JSON_VAR'))
+
+    @patch.dict(os.environ, {'JSON_VAR': 'true'})
+    def test_parses_boolean(self):
+        """JSON 불린 값을 파싱하는지 확인한다."""
+        self.assertTrue(env.get_json('JSON_VAR'))
+        with patch.dict(os.environ, {'JSON_VAR': 'false'}):
+            self.assertFalse(env.get_json('JSON_VAR'))
+
+    @patch.dict(os.environ, {'JSON_VAR': '123'})
+    def test_parses_number(self):
+        """JSON 숫자 값을 파싱하는지 확인한다."""
+        self.assertEqual(env.get_json('JSON_VAR'), 123)
+        with patch.dict(os.environ, {'JSON_VAR': '123.45'}):
+            self.assertEqual(env.get_json('JSON_VAR'), 123.45)
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_default_parameter(self):
+        """환경 변수가 설정되지 않았을 때 default 파라미터 값을 반환하는지 확인한다.
+
+        default가 없으면 None을 반환한다.
+        """
+        self.assertIsNone(env.get_json('MISSING_VAR'))
+        self.assertEqual(env.get_json('MISSING_VAR', default={'default': True}),
+                         {'default': True})
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_required_parameter(self):
+        """필수 환경 변수가 설정되지 않았을 때 ValueError를 발생시키는지 확인한다."""
+        with self.assertRaises(ValueError):
+            env.get_json('REQUIRED_VAR', required=True)
+
+    @patch.dict(os.environ, {'JSON_VAR': 'invalid json'})
+    def test_raises_for_invalid_json(self):
+        """잘못된 JSON 형식에 대해 ValueError를 발생시키는지 확인한다.
+
+        보안상 잘못된 JSON을 조용히 무시하지 않고 명시적으로 에러를 발생시켜야 한다.
+        """
+        with self.assertRaises(ValueError):
+            env.get_json('JSON_VAR')
+
+    @patch.dict(os.environ, {'JSON_VAR': ''})
+    def test_raises_for_empty_string(self):
+        """빈 문자열에 대해 ValueError를 발생시키는지 확인한다.
+
+        보안상 빈 문자열을 조용히 무시하지 않고 명시적으로 에러를 발생시켜야 한다.
+        """
+        with self.assertRaises(ValueError):
+            env.get_json('JSON_VAR')
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_required_with_default(self):
+        """required와 default를 함께 사용할 때 default 값을 반환하는지 확인한다.
+
+        환경 변수가 없어도 default가 있으면 required=True여도 에러가 발생하지 않는다.
+        """
+        self.assertEqual(env.get_json('MISSING_VAR', default={'key': 'value'}, required=True),
+                         {'key': 'value'})
+
+    @patch.dict(os.environ, {'JSON_VAR': '{"nested": {"key": [1, 2, 3]}}'})
+    def test_parses_nested_structure(self):
+        """중첩된 JSON 구조를 올바르게 파싱하는지 확인한다."""
+        self.assertEqual(
+            env.get_json('JSON_VAR'),
+            {'nested': {'key': [1, 2, 3]}},
+        )
+
+    @patch.dict(os.environ, {'JSON_VAR': '{"key": null}'})
+    def test_parses_null_in_object(self):
+        """객체 내부의 null 값을 올바르게 파싱하는지 확인한다.
+
+        환경 변수 자체가 null인 경우와 객체 내부에 null이 있는 경우를 구분해야 한다.
+        """
+        self.assertEqual(env.get_json('JSON_VAR'), {'key': None})
