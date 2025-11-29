@@ -1,5 +1,4 @@
 from django.db import connections
-from django.db.utils import DatabaseError
 from django.db.utils import OperationalError
 from django.http import HttpRequest
 from django.http import HttpResponse
@@ -47,7 +46,7 @@ class HealthCheckAPIView(APIView):
                 pass
         except OperationalError:
             raise APIException("Database connection failed.")
-        except DatabaseError:
-            raise APIException("Database error occurred.")
+        except Exception:
+            raise APIException("Unexpected error during health check.")
 
         return HttpResponse(status=status.HTTP_200_OK)
