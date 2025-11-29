@@ -32,19 +32,17 @@ def get(key: str, default: Optional[str] = None, required: bool = False) -> Opti
         ValueError: required=True이고 환경 변수가 설정되지 않은 경우
     """
     value = os.getenv(key)
+    retval = default
 
     if value is not None:
-        return value
+        retval = value.strip()
 
-    if default is not None:
-        return default
-
-    if required:
+    if required and (retval is None):
         raise ValueError(
             f'Environment variable "{key}" is required but not set.'
         )
 
-    return None
+    return retval
 
 
 def get_array(key: str, default: Optional[List[str]] = None, required: bool = False, allow_empty: bool = True) -> Optional[List[str]]:
@@ -62,20 +60,20 @@ def get_array(key: str, default: Optional[List[str]] = None, required: bool = Fa
         ValueError: required=True이고 환경 변수가 설정되지 않은 경우
     """
     value = os.getenv(key)
-    retval = None
+    retval = default
 
     if value is not None:
-        retval = [item.strip() for item in value.split(',') if item.strip()]
+        retval = []
+        for item in value.strip().split(','):
+            item = item.strip()
+            retval.append(item)
 
-    if retval is None and default is not None:
-        retval = default
-
-    if retval is None and required:
+    if required and (retval is None):
         raise ValueError(
             f'Environment variable "{key}" is required but not set.'
         )
 
-    if not retval and not allow_empty:
+    if not allow_empty and (retval is not None and not retval):
         raise ValueError(
             f'Environment variable "{key}" is empty. '
             f'Please set "{key}" as a comma-separated list.'
@@ -99,25 +97,24 @@ def get_bool(key: str, default: Optional[bool] = None, required: bool = False) -
         ValueError: 잘못된 불린 값이거나 required=True이고 환경 변수가 설정되지 않은 경우
     """
     value = os.getenv(key)
+    retval = default
 
     if value is not None:
         if is_truthy(value):
-            return True
-        if is_falsy(value):
-            return False
-        raise ValueError(
-            f'Environment variable "{key}" has invalid boolean value.'
-        )
+            retval = True
+        elif is_falsy(value):
+            retval = False
+        else:
+            raise ValueError(
+                f'Environment variable "{key}" has invalid boolean value.'
+            )
 
-    if default is not None:
-        return default
-
-    if required:
+    if required and (retval is None):
         raise ValueError(
             f'Environment variable "{key}" is required but not set.'
         )
 
-    return None
+    return retval
 
 
 def get_int(key: str, default: Optional[int] = None, required: bool = False) -> Optional[int]:
@@ -135,24 +132,22 @@ def get_int(key: str, default: Optional[int] = None, required: bool = False) -> 
         ValueError: 잘못된 정수 값이거나 required=True이고 환경 변수가 설정되지 않은 경우
     """
     value = os.getenv(key)
+    retval = default
 
     if value is not None:
         try:
-            return int(value)
+            retval = int(value)
         except ValueError:
             raise ValueError(
                 f'Environment variable "{key}" has invalid integer value.'
             )
 
-    if default is not None:
-        return default
-
-    if required:
+    if required and (retval is None):
         raise ValueError(
             f'Environment variable "{key}" is required but not set.'
         )
 
-    return None
+    return retval
 
 
 def get_file_content(key: str, default: Optional[str] = None, required: bool = False) -> Optional[str]:
@@ -170,24 +165,22 @@ def get_file_content(key: str, default: Optional[str] = None, required: bool = F
         ValueError: 파일을 찾을 수 없거나 required=True이고 환경 변수가 설정되지 않은 경우
     """
     value = os.getenv(key)
+    retval = default
 
     if value is not None:
         try:
-            return Path(value).read_text()
+            retval = Path(value).read_text()
         except FileNotFoundError:
             raise ValueError(
                 f'Environment variable "{key}" has invalid file path.'
             )
 
-    if default is not None:
-        return default
-
-    if required:
+    if required and (retval is None):
         raise ValueError(
             f'Environment variable "{key}" is required but not set.'
         )
 
-    return None
+    return retval
 
 
 def is_truthy(value: Optional[str]) -> bool:
