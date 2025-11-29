@@ -39,7 +39,7 @@ class HealthCheckAPIView(APIView):
         }
     )
     def get(self, request: HttpRequest):
-        # Database Conectivity Check
+        # Database Connectivity Check
         try:
             connection = connections['default']
             connection.cursor()  # 연결 시도
