@@ -1,5 +1,7 @@
 import os
 from django.core.files.temp import NamedTemporaryFile
+from django.db.utils import DatabaseError
+from django.db.utils import InterfaceError
 from django.db.utils import OperationalError
 from django.test import TestCase
 from rest_framework import status
@@ -23,6 +25,30 @@ class HealthCheckAPIViewTest(TestCase):
         # 데이터베이스 연결 실패 시뮬레이션
         mock_connection = mock_connections.__getitem__.return_value
         mock_connection.cursor.side_effect = OperationalError("Database connection failed")
+
+        response = self.client.get('/health/')
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @patch('app.views.connections')
+    def test_get_500_with_database_error(self, mock_connections):
+        """
+        데이터베이스 에러 발생 시 GET /health/ 요청 시 500 에러를 반환하는지 테스트.
+        """
+        # 데이터베이스 에러 시뮬레이션
+        mock_connection = mock_connections.__getitem__.return_value
+        mock_connection.cursor.side_effect = DatabaseError("Database error occurred")
+
+        response = self.client.get('/health/')
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @patch('app.views.connections')
+    def test_get_500_with_interface_error(self, mock_connections):
+        """
+        데이터베이스 인터페이스 에러 발생 시 GET /health/ 요청 시 500 에러를 반환하는지 테스트.
+        """
+        # 데이터베이스 인터페이스 에러 시뮬레이션
+        mock_connection = mock_connections.__getitem__.return_value
+        mock_connection.cursor.side_effect = InterfaceError("Database interface error")
 
         response = self.client.get('/health/')
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
