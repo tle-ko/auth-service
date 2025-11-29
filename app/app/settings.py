@@ -30,7 +30,8 @@ SECRET_KEY = env.get("SECRET_KEY", required=True)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.get_bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env.get_json('ALLOWED_HOSTS',
+                             default=['localhost', '127.0.0.1'])
 
 
 # Application definition
