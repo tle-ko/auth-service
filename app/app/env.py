@@ -5,7 +5,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import dotenv
 
@@ -124,6 +124,83 @@ def get_json(key: str, default: Optional[Any] = None, required: bool = False) ->
         )
 
     return json_value
+
+
+def get_file_content(key: str, default: Optional[str] = None, required: bool = False, strip: bool = True, blank: bool = False, relative_to: Optional[Union[Path, str]] = None, encoding: str = 'utf-8') -> Optional[str]:
+    """환경 변수에 지정된 파일 경로의 내용을 읽어옵니다.
+
+    Args:
+        key: 파일 경로가 저장된 환경 변수 이름
+        default: 기본값 (환경 변수가 없을 때 반환)
+        required: 필수 여부 (True일 때 환경 변수가 없으면 예외 발생)
+        strip: 값의 앞뒤 공백 제거 여부 (기본값: True)
+        blank: 파일 내용에 대하여 빈 문자열 허용 여부 (False일 때 빈 문자열은 None으로 간주)
+        relative_to: 파일 탐색을 허용할 최상위 경로.
+            이 값이 None이면 모든 경로가 허용됩니다.
+            (기본값: None)
+        encoding: 파일 인코딩 (기본값: 'utf-8')
+
+    Returns:
+        파일 내용 또는 기본값
+
+    Raises:
+        ValueError: 파일을 읽을 수 없거나 required=True이고 환경 변수가 설정되지 않은 경우
+    """
+    raw_path = os.getenv(key)
+    content = default
+
+    if raw_path is not None:
+        try:
+            path = Path(raw_path).resolve()
+        except OSError as e:
+            raise ValueError(
+                f'Environment variable "{key}" has invalid file path.'
+            ) from e
+
+        # 파일 경로가 허용 탐색 범위 이내인지 검사
+        if relative_to is not None:
+            relative_to_path = Path(relative_to).resolve()
+            try:
+                if not relative_to_path.is_dir():
+                    raise ValueError
+                path.relative_to(relative_to_path)
+            except ValueError:
+                raise ValueError(
+                    f'Path specified in environment variable "{key}" is outside '
+                    f'the allowed directory, or the "relative_to" path is not a directory.'
+                )
+
+        # 파일 내용 읽어오기
+        fread_error_msg = None
+
+        try:
+            content = path.read_text(encoding=encoding)
+        except FileNotFoundError:
+            fread_error_msg = f'File specified in environment variable "{key}" not found.'
+        except PermissionError:
+            fread_error_msg = f'Permission denied to read file specified in environment variable "{key}".'
+        except OSError:
+            fread_error_msg = f'Error reading file specified in environment variable "{key}".'
+        except UnicodeDecodeError:
+            fread_error_msg = f'Error decoding file specified in environment variable "{key}" with encoding "{encoding}".'
+        except Exception:
+            fread_error_msg = f'Unexpected error while reading file specified in environment variable "{key}".'
+
+        if fread_error_msg:
+            raise ValueError(fread_error_msg)
+
+    if strip and (content is not None):
+        content = content.strip()
+
+    if not blank and (content == ''):
+        content = None
+
+    if required and (content is None):
+        raise ValueError(
+            f'Environment variable "{key}" is required but not set.'
+        )
+
+    return content
 
 
 def _is_truthy(value: Optional[str], strip: bool = True) -> bool:
