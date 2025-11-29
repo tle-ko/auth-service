@@ -28,7 +28,7 @@ env.load(dotenv_path=BASE_DIR / '.env')
 SECRET_KEY = env.get("SECRET_KEY", required=True)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.get_bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = []
 
