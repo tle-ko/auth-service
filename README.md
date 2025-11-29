@@ -138,17 +138,18 @@ TLE 서비스의 모놀리식 아키텍처를 MSA로 전환하는 첫 번째 서
 
 Docker compose를 사용하지 않고 직접 컨테이너를 실행할 경우 필요한 환경변수 입니다.
 
-| 변수명                   | 설명                                       | 기본값  | 필수                                                |
-| ------------------------ | ------------------------------------------ | ------- | --------------------------------------------------- |
-| `DEBUG`                  | 디버그 모드                                | `False` | ❌                                                  |
-| `SECRET_KEY`             | Django, JWT 암호화 키                      |         | ✅ (`SECRET_KEY_FILE`이 설정되었다면 필수 X)        |
-| `SECRET_KEY_FILE`        | Django, JWT 암호화 키가 저장된 파일        |         | ❌                                                  |
-| `POSTGRES_HOST`          | 데이터베이스 호스트                        |         | ✅                                                  |
-| `POSTGRES_PORT`          | 데이터베이스 Port                          | `5432`  | ❌                                                  |
-| `POSTGRES_DB`            | 데이터베이스 이름                          |         | ✅                                                  |
-| `POSTGRES_USER`          | 데이터베이스 사용자명                      |         | ✅                                                  |
-| `POSTGRES_PASSWORD`      | 데이터베이스 사용자 비밀번호               |         | ✅ (`POSTGRES_PASSWORD_FILE`이 설정되었다면 필수 X) |
-| `POSTGRES_PASSWORD_FILE` | 데이터베이스 사용자 비밀번호가 저장된 파일 |         | ❌                                                  |
+| 변수명                   | 설명                                               | 기본값                       | 필수                                                |
+| ------------------------ | -------------------------------------------------- | ---------------------------- | --------------------------------------------------- |
+| `ALLOWED_HOSTS`          | 허용된 호스트명 (JSON 배열, 예: `["example.com"]`) | `["localhost", "127.0.0.1"]` | ❌ (프로덕션 배포 시 도메인 추가 필요)              |
+| `DEBUG`                  | 디버그 모드                                        | `False`                      | ❌                                                  |
+| `SECRET_KEY`             | Django, JWT 암호화 키                              |                              | ✅ (`SECRET_KEY_FILE`이 설정되었다면 필수 X)        |
+| `SECRET_KEY_FILE`        | Django, JWT 암호화 키가 저장된 파일                |                              | ❌                                                  |
+| `POSTGRES_HOST`          | 데이터베이스 호스트                                |                              | ✅                                                  |
+| `POSTGRES_PORT`          | 데이터베이스 Port                                  | `5432`                       | ❌                                                  |
+| `POSTGRES_DB`            | 데이터베이스 이름                                  |                              | ✅                                                  |
+| `POSTGRES_USER`          | 데이터베이스 사용자명                              |                              | ✅                                                  |
+| `POSTGRES_PASSWORD`      | 데이터베이스 사용자 비밀번호                       |                              | ✅ (`POSTGRES_PASSWORD_FILE`이 설정되었다면 필수 X) |
+| `POSTGRES_PASSWORD_FILE` | 데이터베이스 사용자 비밀번호가 저장된 파일         |                              | ❌                                                  |
 
 ### 포트 설정 변경
 
