@@ -8,7 +8,7 @@ function debug_init() {
     echo "[ENTRYPOINT] Running in DEBUG mode."
 
     python manage.py migrate --no-input
-    python manage.py collectstatic --no-input
+    python manage.py collectstatic --no-input || true
 }
 
 
