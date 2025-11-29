@@ -99,7 +99,7 @@ def get_bool(key: str, default: Optional[bool] = None, required: bool = False) -
         if is_falsy(value):
             return False
         raise ValueError(
-            f'Environment variable "{key}" has invalid boolean value: {value}'
+            f'Environment variable "{key}" has invalid boolean value.'
         )
 
     if default is not None:
@@ -134,7 +134,7 @@ def get_int(key: str, default: Optional[int] = None, required: bool = False) -> 
             return int(value)
         except ValueError:
             raise ValueError(
-                f'Environment variable "{key}" has invalid integer value:'
+                f'Environment variable "{key}" has invalid integer value.'
             )
 
     if default is not None:
