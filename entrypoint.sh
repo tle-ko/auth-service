@@ -16,7 +16,9 @@ function debug_init() {
     echo "[ENTRYPOINT] Running in DEBUG mode."
 
     python manage.py migrate --no-input
-    python manage.py collectstatic --no-input || true
+
+    # 관리자 페이지, Swagger UI가 설치되어 있으므로, 항상 collect할 static 파일이 존재하는 것으로 가정.
+    python manage.py collectstatic --no-input
 }
 
 
