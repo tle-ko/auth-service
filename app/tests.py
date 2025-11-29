@@ -1,16 +1,31 @@
 import os
 from django.core.files.temp import NamedTemporaryFile
+from django.db.utils import OperationalError
 from django.test import TestCase
+from rest_framework import status
+from unittest.mock import patch
 from app import env
 
 
 class HealthCheckAPIViewTest(TestCase):
-    def test_get_200(self):
+    def test_get_200_with_healthy_database(self):
         """
-        GET /health/ 요청 시 200 OK를 반환하는지 테스트.
+        데이터베이스 연결이 정상일 때 GET /health/ 요청 시 200 OK를 반환하는지 테스트.
         """
         response = self.client.get('/health/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    @patch('app.views.connections')
+    def test_get_500_with_database_connection_error(self, mock_connections):
+        """
+        데이터베이스 연결 실패 시 GET /health/ 요청 시 500 에러를 반환하는지 테스트.
+        """
+        # 데이터베이스 연결 실패 시뮬레이션
+        mock_connection = mock_connections.__getitem__.return_value
+        mock_connection.cursor.side_effect = OperationalError("Database connection failed")
+
+        response = self.client.get('/health/')
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class EnvModuleTest(TestCase):
