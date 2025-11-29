@@ -3,7 +3,21 @@
 """
 
 import os
+from pathlib import Path
 from typing import Optional
+
+import dotenv
+
+
+def load(dotenv_path: Optional[Path] = None):
+    """.env 파일이 있다면 .env 파일에서 환경 변수를 로드합니다.
+
+    Args:
+        dotenv_path: .env 파일 경로 (기본값: None)
+    """
+    # Load .env file if it exists
+    if (dotenv_path is not None) and dotenv_path.exists():
+        dotenv.load_dotenv(dotenv_path=dotenv_path, override=True)
 
 
 def get(key: str, default: Optional[str] = None, required: bool = False, strip: bool = True, blank: bool = False) -> Optional[str]:
