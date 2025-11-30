@@ -25,9 +25,18 @@ env.load(dotenv_path=BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env.get("SECRET_KEY",
-                     default=env.get_file_content('SECRET_KEY_FILE'),
-                     required=True)
+secret_key = env.get("SECRET_KEY")
+secret_key_file = env.get("SECRET_KEY_FILE")
+
+if secret_key and secret_key_file:
+    raise ValueError("Cannot set both SECRET_KEY and SECRET_KEY_FILE")
+elif secret_key:
+    SECRET_KEY = secret_key
+elif secret_key_file:
+    SECRET_KEY = env.get_file_content("SECRET_KEY_FILE")
+else:
+    raise ValueError("Either SECRET_KEY or SECRET_KEY_FILE must be set")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.get_bool('DEBUG', default=False)
