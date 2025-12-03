@@ -423,3 +423,108 @@ class GetFileContentTest(TestCase):
                     with self.assertRaises(ValueError):
                         env.get_file_content('FILE_VAR',
                                              relative_to=relative_to)
+
+
+class GetPathTest(TestCase):
+    def _create_temp_file(self) -> Path:
+        """임시 파일을 생성하고 Path를 반환하는 헬퍼 함수."""
+        with NamedTemporaryFile(mode='w+', delete=False) as f:
+            self.addCleanup(os.unlink, f.name)
+            return Path(f.name).resolve()
+
+    @patch.dict(os.environ, {'PATH_VAR': '/tmp/test.txt'})
+    def test_returns_resolved_path(self):
+        """환경 변수의 경로를 resolve된 Path 객체로 반환하는지 확인한다."""
+        result = env.get_path('PATH_VAR')
+        self.assertIsInstance(result, Path)
+        self.assertEqual(result, Path('/tmp/test.txt').resolve())
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_default_parameter(self):
+        """환경 변수가 설정되지 않았을 때 default 파라미터 값을 반환하는지 확인한다."""
+        self.assertIsNone(env.get_path('MISSING_VAR'))
+        default_path = Path('/default/path')
+        self.assertEqual(env.get_path('MISSING_VAR', default=default_path),
+                         default_path)
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_required_parameter(self):
+        """필수 환경 변수가 설정되지 않았을 때 ValueError를 발생시키는지 확인한다."""
+        with self.assertRaises(ValueError):
+            env.get_path('REQUIRED_VAR', required=True)
+
+    def test_relative_path_resolution(self):
+        """상대 경로를 절대 경로로 resolve하는지 확인한다."""
+        with patch.dict(os.environ, {'PATH_VAR': './relative/path'}):
+            result = env.get_path('PATH_VAR')
+            self.assertTrue(result.is_absolute())
+
+    def test_symlink_resolution(self):
+        """심볼릭 링크를 실제 경로로 resolve하는지 확인한다."""
+        file = self._create_temp_file()
+        symlink = file.parent / 'symlink_test'
+        self.addCleanup(lambda: symlink.unlink(missing_ok=True))
+        symlink.symlink_to(file)
+        with patch.dict(os.environ, {'PATH_VAR': str(symlink)}):
+            result = env.get_path('PATH_VAR')
+            self.assertEqual(result, file)
+
+    def test_relative_to_allows_path_in_directory(self):
+        """relative_to로 지정된 디렉토리 내부의 경로를 허용하는지 확인한다."""
+        file = self._create_temp_file()
+        with patch.dict(os.environ, {'PATH_VAR': str(file)}):
+            result = env.get_path('PATH_VAR', relative_to=file.parent)
+            self.assertEqual(result, file)
+
+    def test_relative_to_rejects_path_outside_directory(self):
+        """relative_to로 지정된 디렉토리 외부의 경로를 거부하는지 확인한다.
+
+        경로 탐색 공격(path traversal)을 방지하기 위한 보안 검증이다.
+        """
+        file = self._create_temp_file()
+        other_dir = settings.BASE_DIR / 'other_dir'
+        with patch.dict(os.environ, {'PATH_VAR': str(file)}):
+            with self.assertRaises(ValueError):
+                env.get_path('PATH_VAR', relative_to=other_dir)
+
+    def test_relative_to_rejects_invalid_directory(self):
+        """relative_to가 디렉토리가 아닌 경우 ValueError를 발생시키는지 확인한다."""
+        file = self._create_temp_file()
+        with patch.dict(os.environ, {'PATH_VAR': str(file)}):
+            with self.assertRaises(ValueError):
+                env.get_path('PATH_VAR', relative_to=file)
+
+    def test_relative_to_with_symlink_attack(self):
+        """심볼릭 링크를 이용한 경로 탐색 공격을 방어하는지 확인한다.
+
+        허용된 디렉토리 내부의 심볼릭 링크가 외부를 가리킬 때 이를 차단해야 한다.
+        """
+        file = self._create_temp_file()
+        allowed_dir = file.parent / 'allowed'
+        symlink = allowed_dir / 'symlink'
+        # Note: LIFO 구조이므로 아래와 같이 clean up 순서를 구성해야함.
+        self.addCleanup(
+            lambda: allowed_dir.rmdir() if allowed_dir.exists() else None
+        )
+        self.addCleanup(lambda: symlink.unlink(missing_ok=True))
+        allowed_dir.mkdir(exist_ok=True)
+        symlink.symlink_to(file)
+        with patch.dict(os.environ, {'PATH_VAR': str(symlink)}):
+            with self.assertRaises(ValueError):
+                env.get_path('PATH_VAR', relative_to=allowed_dir)
+
+    @patch.dict(os.environ, {'PATH_VAR': '../../../etc/passwd'})
+    def test_path_traversal_attack_prevention(self):
+        """경로 탐색 공격 시도를 방어하는지 확인한다.
+
+        상대 경로를 사용한 상위 디렉토리 접근 시도를 차단해야 한다.
+        """
+        with self.assertRaises(ValueError):
+            env.get_path('PATH_VAR', relative_to=settings.BASE_DIR)
+
+    @patch.dict(os.environ, {}, clear=True)
+    def test_required_with_default(self):
+        """required와 default를 함께 사용할 때 default 값을 반환하는지 확인한다."""
+        default_path = Path('/default')
+        self.assertEqual(env.get_path('MISSING_VAR', default=default_path, required=True),
+                         default_path)
