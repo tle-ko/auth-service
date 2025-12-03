@@ -33,7 +33,14 @@ if secret_key and secret_key_file:
 elif secret_key:
     SECRET_KEY = secret_key
 elif secret_key_file:
-    SECRET_KEY = env.get_file_content("SECRET_KEY_FILE")
+    secret_key_file_path = Path(secret_key_file).resolve()
+    if not secret_key_file_path.is_relative_to(BASE_DIR):
+        raise ValueError("SECRET_KEY_FILE path must be within the BASE_DIR")
+    if not secret_key_file_path.is_file():
+        raise ValueError("SECRET_KEY_FILE path does not exist or is not a file")
+    SECRET_KEY = secret_key_file_path.read_text(encoding='utf-8').strip()
+    if not SECRET_KEY:
+        raise ValueError("SECRET_KEY_FILE must not be empty")
 else:
     raise ValueError("Either SECRET_KEY or SECRET_KEY_FILE must be set")
 
