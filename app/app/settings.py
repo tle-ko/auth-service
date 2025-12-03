@@ -26,21 +26,20 @@ env.load(dotenv_path=BASE_DIR / '.env')
 
 # SECURITY WARNING: keep the secret key used in production secret!
 secret_key = env.get("SECRET_KEY")
-secret_key_file = env.get("SECRET_KEY_FILE")
+secret_key_file = env.get_path("SECRET_KEY_FILE")
 
 if secret_key and secret_key_file:
     raise ValueError("Cannot set both SECRET_KEY and SECRET_KEY_FILE")
 elif secret_key:
     SECRET_KEY = secret_key
 elif secret_key_file:
-    secret_key_file_path = Path(secret_key_file).resolve()
-    if not secret_key_file_path.is_relative_to(BASE_DIR):
-        raise ValueError("SECRET_KEY_FILE path must be within the BASE_DIR")
-    if not secret_key_file_path.is_file():
-        raise ValueError("SECRET_KEY_FILE path does not exist or is not a file")
-    SECRET_KEY = secret_key_file_path.read_text(encoding='utf-8').strip()
-    if not SECRET_KEY:
-        raise ValueError("SECRET_KEY_FILE must not be empty")
+    if not secret_key_file.exists():
+        raise ValueError(f"SECRET_KEY_FILE does not exist.")
+    if not secret_key_file.is_file():
+        raise ValueError(f"SECRET_KEY_FILE is not a file.")
+
+    # Fail-fast, 명확한 에러 추적을 위해 파일읽기 중 오류는 예외처리를 하지 않음.
+    SECRET_KEY = secret_key_file.read_text().strip()
 else:
     raise ValueError("Either SECRET_KEY or SECRET_KEY_FILE must be set")
 
