@@ -4,6 +4,7 @@
 
 import json
 import os
+import warnings
 from pathlib import Path
 from typing import Any, Optional, Union
 
@@ -129,6 +130,10 @@ def get_json(key: str, default: Optional[Any] = None, required: bool = False) ->
 def get_file_content(key: str, default: Optional[str] = None, required: bool = False, strip: bool = True, blank: bool = False, relative_to: Optional[Union[Path, str]] = None, encoding: str = 'utf-8') -> Optional[str]:
     """환경 변수에 지정된 파일 경로의 내용을 읽어옵니다.
 
+    .. deprecated::
+        이 함수는 deprecated 되었습니다.
+        대신 직접 Path().resolve(), is_relative_to(), read_text()를 사용하세요.
+
     Args:
         key: 파일 경로가 저장된 환경 변수 이름
         default: 기본값 (환경 변수가 없을 때 반환)
@@ -146,6 +151,12 @@ def get_file_content(key: str, default: Optional[str] = None, required: bool = F
     Raises:
         ValueError: 파일을 읽을 수 없거나 required=True이고 환경 변수가 설정되지 않은 경우
     """
+    warnings.warn(
+        'get_file_content() is deprecated. '
+        'Use Path().resolve(), is_relative_to(), and read_text() directly in settings.py instead.',
+        DeprecationWarning,
+        stacklevel=2
+    )
     raw_path = os.getenv(key)
     content = default
 
