@@ -34,11 +34,11 @@ elif secret_key:
     SECRET_KEY = secret_key
 elif secret_key_file:
     if not secret_key_file.exists():
-        raise ValueError(f"SECRET_KEY_FILE does not exist.")
+        raise ValueError(f"SECRET_KEY_FILE does not exist: {secret_key_file}")
     if not secret_key_file.is_file():
-        raise ValueError(f"SECRET_KEY_FILE is not a file.")
+        raise ValueError(f"SECRET_KEY_FILE is not a file: {secret_key_file}")
 
-    # Fail-fast, 명확한 에러 추적을 위해 파일읽기 중 오류는 예외처리를 하지 않음.
+    # Fail-fast, 명확한 에러 추적을 위해 파일 읽기 중 오류는 예외 처리를 하지 않음.
     SECRET_KEY = secret_key_file.read_text().strip()
 else:
     raise ValueError("Either SECRET_KEY or SECRET_KEY_FILE must be set")
