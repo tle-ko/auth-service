@@ -56,7 +56,7 @@ DEBUG = env.get_bool('DEBUG', default=False)
 
 # Allow all hosts during development, require explicit hosts in production.
 if DEBUG:
-    ALLOWED_HOSTS = env.get_json('ALLOWED_HOSTS', default=[])
+    ALLOWED_HOSTS = env.get_json('ALLOWED_HOSTS', default=['*'])
 else:
     ALLOWED_HOSTS = env.get_json('ALLOWED_HOSTS', required=True)
 
