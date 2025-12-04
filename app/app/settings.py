@@ -33,6 +33,9 @@ if secret_key and secret_key_file:
 elif secret_key:
     SECRET_KEY = secret_key
 elif secret_key_file:
+    # NOTE: 명확한 에러 추적을 위해 파일 경로는 오류 메시지로 노출.
+    # 오류가 발생하면 애플리케이션 구동이 안되기에, 보안을 위해 키 값도 아닌,
+    # 경로 자체를 숨기는 것은 과하다고 판단함.
     if not secret_key_file.exists():
         raise ValueError(f"SECRET_KEY_FILE does not exist: {secret_key_file}")
     if not secret_key_file.is_file():
@@ -40,6 +43,9 @@ elif secret_key_file:
 
     # Fail-fast, 명확한 에러 추적을 위해 파일 읽기 중 오류는 예외 처리를 하지 않음.
     SECRET_KEY = secret_key_file.read_text().strip()
+
+    if not SECRET_KEY:
+        raise ValueError(f"SECRET_KEY_FILE is empty: {secret_key_file}")
 else:
     raise ValueError("Either SECRET_KEY or SECRET_KEY_FILE must be set")
 
