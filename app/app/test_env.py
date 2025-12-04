@@ -359,12 +359,12 @@ class GetPathTest(TestCase):
             self.addCleanup(os.unlink, f.name)
             return Path(f.name).resolve()
 
-    @patch.dict(os.environ, {'PATH_VAR': '/tmp/test.txt'})
+    @patch.dict(os.environ, {'PATH_VAR': str(settings.BASE_DIR / 'test.txt')})
     def test_returns_resolved_path(self):
         """환경 변수의 경로를 resolve된 Path 객체로 반환하는지 확인한다."""
         result = env.get_path('PATH_VAR')
         self.assertIsInstance(result, Path)
-        self.assertEqual(result, Path('/tmp/test.txt').resolve())
+        self.assertEqual(result, (settings.BASE_DIR / 'test.txt').resolve())
 
     @patch.dict(os.environ, {}, clear=True)
     def test_default_parameter(self):
@@ -452,6 +452,6 @@ class GetPathTest(TestCase):
     @patch.dict(os.environ, {}, clear=True)
     def test_required_with_default(self):
         """required와 default를 함께 사용할 때 default 값을 반환하는지 확인한다."""
-        default_path = Path('/default')
+        default_path = settings.BASE_DIR / 'default'
         self.assertEqual(env.get_path('MISSING_VAR', default=default_path, required=True),
                          default_path)
