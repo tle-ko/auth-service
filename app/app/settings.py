@@ -47,8 +47,12 @@ else:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.get_bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = env.get_json('ALLOWED_HOSTS',
-                             default=['localhost', '127.0.0.1'])
+
+# Allow all hosts during development, require explicit hosts in production.
+if DEBUG:
+    ALLOWED_HOSTS = env.get_json('ALLOWED_HOSTS', default=[])
+else:
+    ALLOWED_HOSTS = env.get_json('ALLOWED_HOSTS', required=True)
 
 
 # Application definition
