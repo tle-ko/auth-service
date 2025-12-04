@@ -42,7 +42,7 @@ elif secret_key_file:
         raise ValueError(f"SECRET_KEY_FILE is not a file: {secret_key_file}")
 
     # Fail-fast, 명확한 에러 추적을 위해 파일 읽기 중 오류는 예외 처리를 하지 않음.
-    SECRET_KEY = secret_key_file.read_text().strip()
+    SECRET_KEY = secret_key_file.read_text(encoding='utf-8').strip()
 
     if not SECRET_KEY:
         raise ValueError(f"SECRET_KEY_FILE is empty: {secret_key_file}")
