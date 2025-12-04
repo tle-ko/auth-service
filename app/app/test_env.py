@@ -10,6 +10,7 @@ from app import env
 
 
 class LoadTest(TestCase):
+    @patch.dict(os.environ, {}, clear=True)
     def test_loads_env_file_when_exists(self):
         """env 파일이 존재할 때 환경 변수를 올바르게 로드하는지 확인한다."""
         with NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
@@ -19,7 +20,6 @@ class LoadTest(TestCase):
 
         env.load(dotenv_path=env_path)
         self.assertEqual(os.getenv('TEST_LOAD_VAR'), 'loaded_value')
-        self.addCleanup(lambda: os.environ.pop('TEST_LOAD_VAR', None))
 
     def test_does_not_raise_when_file_missing(self):
         """env 파일이 존재하지 않을 때 에러를 발생시키지 않는지 확인한다."""
@@ -42,6 +42,7 @@ class LoadTest(TestCase):
         env.load(dotenv_path=env_path)
         self.assertEqual(os.getenv('TEST_OVERRIDE_VAR'), 'overridden')
 
+    @patch.dict(os.environ, {}, clear=True)
     def test_loads_multiple_variables(self):
         """env 파일에 여러 환경 변수가 있을 때 모두 로드하는지 확인한다."""
         with NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
@@ -53,8 +54,8 @@ class LoadTest(TestCase):
         self.assertEqual(os.getenv('VAR1'), 'value1')
         self.assertEqual(os.getenv('VAR2'), 'value2')
         self.assertEqual(os.getenv('VAR3'), 'value3')
-        self.addCleanup(lambda: [os.environ.pop(k, None) for k in ['VAR1', 'VAR2', 'VAR3']])
 
+    @patch.dict(os.environ, {}, clear=True)
     def test_loads_values_with_special_characters(self):
         """특수 문자와 공백이 포함된 환경 변수 값을 올바르게 로드하는지 확인한다."""
         with NamedTemporaryFile(mode='w', suffix='.env', delete=False) as f:
@@ -64,7 +65,6 @@ class LoadTest(TestCase):
 
         env.load(dotenv_path=env_path)
         self.assertEqual(os.getenv('SPECIAL_VAR'), 'value with spaces')
-        self.addCleanup(lambda: os.environ.pop('SPECIAL_VAR', None))
 
 
 class GetTest(TestCase):
