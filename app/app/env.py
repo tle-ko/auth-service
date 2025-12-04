@@ -160,13 +160,13 @@ def get_path(key: str, default: Optional[Path] = None, required: bool = False, r
             relative_to_path = Path(relative_to).resolve()
         except OSError as e:
             raise ValueError(
-                f'Environment variable "{key}" has invalid "relative_to" path.'
+                f'Invalid "relative_to" parameter value.'
             ) from e
 
         # 디렉토리인지 검증
         if not relative_to_path.is_dir():
             raise ValueError(
-                f'"relative_to" path for environment variable "{key}" is not a directory.'
+                f'The "relative_to" parameter must be a directory, got: {relative_to_path}'
             )
 
         try:
