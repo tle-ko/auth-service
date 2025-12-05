@@ -1,0 +1,8 @@
+{
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/app"
+    ],
+    "python.testing.cwd": "${workspaceFolder}/app/",
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false
+}
