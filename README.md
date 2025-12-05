@@ -22,5 +22,5 @@ Docker compose를 사용하지 않고 직접 컨테이너를 실행할 경우 �
 | ----------------- | -------------------------------------------------- | ------- | -------------------------------- |
 | `SECRET_KEY`      | Django 암호화 키                                   |         | `SECRET_KEY_FILE` 미설정 시 필수 |
 | `SECRET_KEY_FILE` | Django 암호화 키가 저장된 파일                     |         | `SECRET_KEY` 미설정 시 필수      |
-| `DEBUG`           | 디버그 모드 활성 여부                              | `False` | Optional                         |
+| `DEBUG`           | 디버그 모드 활성 여부                              | `False` | 선택 사항                        |
 | `ALLOWED_HOSTS`   | 허용된 호스트명 (JSON 배열, 예: `["example.com"]`) |         | 디버그 모드가 아니면 필수        |
