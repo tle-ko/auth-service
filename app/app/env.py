@@ -108,13 +108,7 @@ def _is_truthy(value: Optional[str], strip: bool = True) -> bool:
     if value is None:
         return False
 
-    value = value.lower()
-
-    for item in _TRUTHY_VALUES:
-        if item == value:
-            return True
-
-    return False
+    return value.lower() in _TRUTHY_VALUES
 
 
 def _is_falsy(value: Optional[str], strip: bool = True) -> bool:
@@ -133,10 +127,4 @@ def _is_falsy(value: Optional[str], strip: bool = True) -> bool:
     if value is None:
         return False
 
-    value = value.lower()
-
-    for item in _FALSY_VALUES:
-        if item == value:
-            return True
-
-    return False
+    return value.lower() in _FALSY_VALUES
