@@ -12,20 +12,59 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+from app import env
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+env.load(dotenv_path=BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^&757(fcj_5idk9lfj5%mc#5ozvfoigka&#z73lxc_(!4j_e$o'
+secret_key = env.get("SECRET_KEY")
+secret_key_file = env.get_path("SECRET_KEY_FILE")
+# NOTE: path traversal attack에 대하여,
+# Docker Compose를 구성할 경우, secret이 담긴 파일이 프로젝트 디렉터리 외부에 있는 경우도 있다.
+# 따라서 relative_to 를 설정할 경우, "/run/secrets/*" 와 같은 경로에 접근을 못하게 될 가능성이 높다.
+# 더군다나 위 코드는 최초 설정시에만 실행되기에 약점의 크기가 상당히 작다고 판단하여
+# path traversal attack을 허용할 여지가 있더라도, 더 좋은 방법을 찾기 전까지는 relative_to를 설정하지 않는다.
+
+if secret_key and secret_key_file:
+    raise ValueError("Cannot set both SECRET_KEY and SECRET_KEY_FILE")
+elif secret_key:
+    SECRET_KEY = secret_key
+elif secret_key_file:
+    # NOTE: 명확한 에러 추적을 위해 파일 경로는 오류 메시지로 노출.
+    # 오류가 발생하면 애플리케이션 구동이 안되기에, 보안을 위해 키 값도 아닌,
+    # 경로 자체를 숨기는 것은 과하다고 판단함.
+    if not secret_key_file.exists():
+        raise ValueError(f"SECRET_KEY_FILE does not exist: {secret_key_file}")
+    if not secret_key_file.is_file():
+        raise ValueError(f"SECRET_KEY_FILE is not a file: {secret_key_file}")
+
+    # Fail-fast, 명확한 에러 추적을 위해 파일 읽기 중 오류는 예외 처리를 하지 않음.
+    SECRET_KEY = secret_key_file.read_text(encoding='utf-8').strip()
+
+    if not SECRET_KEY:
+        raise ValueError(f"SECRET_KEY_FILE is empty: {secret_key_file}")
+else:
+    raise ValueError("Either SECRET_KEY or SECRET_KEY_FILE must be set")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.get_bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = []
+
+# Allow all hosts during development, require explicit hosts in production.
+if DEBUG:
+    ALLOWED_HOSTS = env.get_json('ALLOWED_HOSTS',
+                                 default=['localhost', '127.0.0.1', '[::1]'])
+else:
+    ALLOWED_HOSTS = env.get_json('ALLOWED_HOSTS', required=True)
 
 
 # Application definition
@@ -74,6 +113,7 @@ WSGI_APPLICATION = 'app.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# TODO: Use PostgreSQL for production.
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
