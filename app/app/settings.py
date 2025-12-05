@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 
+from drf_yasg.openapi import Contact, Info
+
 from app import env
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -70,6 +72,7 @@ else:
 # Application definition
 
 INSTALLED_APPS = [
+    'drf_yasg',
     'rest_framework',
 
     'django.contrib.admin',
@@ -162,3 +165,25 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# drf-yasg settings
+# https://drf-yasg.readthedocs.io/en/stable/settings.html
+SWAGGER_SETTINGS = {
+    # NOTE: DEFAULT_INFO 설정을 해두어야 `generate_swagger` management command를 사용할 수 있음에 유의.
+    "DEFAULT_INFO": "app.settings.OPEN_API_INFO",
+}
+
+REDOC_SETTINGS = {
+    "LAZY_RENDERING": True,
+}
+
+OPEN_API_INFO = Info(
+    title="Time Limit Exceeded :: Authentication API",
+    default_version='v1',
+    description=(
+        "This API provides authentication endpoints and related features for the Time Limit Exceeded application, "
+        "including user login, registration, and token management."
+    ),
+    contact=Contact(email="hepheir@gmail.com"),
+)
