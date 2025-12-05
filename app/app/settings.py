@@ -27,6 +27,11 @@ env.load(dotenv_path=BASE_DIR / '.env')
 # SECURITY WARNING: keep the secret key used in production secret!
 secret_key = env.get("SECRET_KEY")
 secret_key_file = env.get_path("SECRET_KEY_FILE")
+# NOTE: path traversal attack에 대하여,
+# Docker Compose를 구성할 경우, secret이 담긴 파일이 프로젝트 디렉터리 외부에 있는 경우도 있다.
+# 따라서 relative_to 를 설정할 경우, "/run/secrets/*" 와 같은 경로에 접근을 못하게 될 가능성이 높다.
+# 더군다나 위 코드는 최초 설정시에만 실행되기에 약점의 크기가 상당히 작다고 판단하여
+# path traversal attack을 허용할 여지가 있더라도, 더 좋은 방법을 찾기 전까지는 relative_to를 설정하지 않는다.
 
 if secret_key and secret_key_file:
     raise ValueError("Cannot set both SECRET_KEY and SECRET_KEY_FILE")
