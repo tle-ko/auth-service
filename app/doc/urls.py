@@ -16,5 +16,11 @@ Including another URLconf
 """
 from django.urls import path
 
+from . import views
 
-urlpatterns = []
+
+urlpatterns = [
+    path('swagger<str:format>/', views.schema_format_view),
+    path('swagger/', views.swagger_view),
+    path('redoc/', views.redoc_view),
+]
