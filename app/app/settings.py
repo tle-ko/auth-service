@@ -75,6 +75,8 @@ INSTALLED_APPS = [
     'drf_yasg',
     'rest_framework',
 
+    'doc',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
