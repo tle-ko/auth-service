@@ -70,7 +70,7 @@ else:
 # Application definition
 
 INSTALLED_APPS = [
-    "rest_framework",
+    'rest_framework',
 
     'django.contrib.admin',
     'django.contrib.auth',
