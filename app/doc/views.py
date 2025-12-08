@@ -14,6 +14,7 @@ class IsDebug(BasePermission):
 
 SchemaView = get_schema_view(
     info=settings.OPEN_API_INFO,
+    permission_classes=[IsDebug],
     public=True,
 )
 
